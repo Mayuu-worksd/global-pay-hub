@@ -184,7 +184,7 @@ export function useTransactions(type?: string) {
         .select("*")
         .order("created_at", { ascending: false })
         .limit(100);
-      if (type) query = query.eq("type", type);
+      if (type) query = query.eq("type", type as Transaction["type"]);
       const { data, error } = await query;
       if (error) throw error;
       return (data ?? []) as Transaction[];
@@ -253,14 +253,28 @@ export function useExchange() {
 
 async function applyBalance(code: string, delta: number) {
   const upper = code.toUpperCase();
-  const fiat = ["USD", "EUR", "GBP"].includes(upper);
-  const table = fiat ? "fiat_wallets" : "crypto_wallets";
-  const column = fiat ? "currency" : "asset";
-  const { data } = await supabase.from(table).select("*").eq(column, upper).maybeSingle();
+  if (["USD", "EUR", "GBP"].includes(upper)) {
+    const { data } = await supabase
+      .from("fiat_wallets")
+      .select("id, balance")
+      .eq("currency", upper)
+      .maybeSingle();
+    if (!data) return;
+    const next = Math.max(0, Number(data.balance) + delta);
+    await supabase
+      .from("fiat_wallets")
+      .update({ balance: next, available_balance: next })
+      .eq("id", data.id);
+    return;
+  }
+  const { data } = await supabase
+    .from("crypto_wallets")
+    .select("id, balance")
+    .eq("asset", upper)
+    .maybeSingle();
   if (!data) return;
-  const next = Math.max(0, Number((data as { balance: number }).balance) + delta);
-  const patch = fiat ? { balance: next, available_balance: next } : { balance: next };
-  await supabase.from(table).update(patch).eq("id", (data as { id: string }).id);
+  const next = Math.max(0, Number(data.balance) + delta);
+  await supabase.from("crypto_wallets").update({ balance: next }).eq("id", data.id);
 }
 
 function invalidateMoney(qc: ReturnType<typeof useQueryClient>) {
@@ -286,9 +300,11 @@ export function useBeneficiaries() {
 export function useSaveBeneficiary() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (values: Record<string, unknown>) => {
+    mutationFn: async (values: { name: string } & Record<string, unknown>) => {
       const userId = await requireUserId();
-      const { error } = await supabase.from("beneficiaries").insert({ ...values, user_id: userId });
+      const { error } = await supabase
+        .from("beneficiaries")
+        .insert({ ...values, name: values.name, user_id: userId });
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["beneficiaries"] }),
