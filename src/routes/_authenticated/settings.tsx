@@ -130,7 +130,7 @@ function SettingsPage() {
                 <p className="mt-1 text-sm text-muted-foreground">{description}</p>
               </div>
               <Switch
-                checked={Boolean(settings?.[key as keyof typeof settings])}
+                checked={Boolean(settings?.[key as keyof UserSettings])}
                 onCheckedChange={toggle(key as "email_notifications")}
               />
             </li>

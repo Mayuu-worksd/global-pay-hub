@@ -20,12 +20,15 @@ import { Route as ProductsRouteImport } from './routes/products'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SolutionsRouteImport } from './routes/solutions'
+import { Route as AuthenticatedApiKeysRouteImport } from './routes/_authenticated/api-keys'
+import { Route as AuthenticatedBeneficiariesRouteImport } from './routes/_authenticated/beneficiaries'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedDepositsRouteImport } from './routes/_authenticated/deposits'
 import { Route as AuthenticatedExchangeRouteImport } from './routes/_authenticated/exchange'
 import { Route as AuthenticatedKycRouteImport } from './routes/_authenticated/kyc'
 import { Route as AuthenticatedReceiveRouteImport } from './routes/_authenticated/receive'
 import { Route as AuthenticatedSendRouteImport } from './routes/_authenticated/send'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedTransactionsRouteImport } from './routes/_authenticated/transactions'
 import { Route as AuthenticatedVirtualAccountsRouteImport } from './routes/_authenticated/virtual-accounts'
 import { Route as AuthenticatedWalletsRouteImport } from './routes/_authenticated/wallets'
@@ -85,6 +88,17 @@ const SolutionsRoute = SolutionsRouteImport.update({
   path: '/solutions',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedApiKeysRoute = AuthenticatedApiKeysRouteImport.update({
+  id: '/api-keys',
+  path: '/api-keys',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedBeneficiariesRoute =
+  AuthenticatedBeneficiariesRouteImport.update({
+    id: '/beneficiaries',
+    path: '/beneficiaries',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -113,6 +127,11 @@ const AuthenticatedReceiveRoute = AuthenticatedReceiveRouteImport.update({
 const AuthenticatedSendRoute = AuthenticatedSendRouteImport.update({
   id: '/send',
   path: '/send',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedTransactionsRoute =
@@ -150,12 +169,15 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/solutions': typeof SolutionsRoute
+  '/api-keys': typeof AuthenticatedApiKeysRoute
+  '/beneficiaries': typeof AuthenticatedBeneficiariesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/deposits': typeof AuthenticatedDepositsRoute
   '/exchange': typeof AuthenticatedExchangeRoute
   '/kyc': typeof AuthenticatedKycRoute
   '/receive': typeof AuthenticatedReceiveRoute
   '/send': typeof AuthenticatedSendRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/transactions': typeof AuthenticatedTransactionsRoute
   '/virtual-accounts': typeof AuthenticatedVirtualAccountsRoute
   '/wallets': typeof AuthenticatedWalletsRoute
@@ -172,12 +194,15 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/solutions': typeof SolutionsRoute
+  '/api-keys': typeof AuthenticatedApiKeysRoute
+  '/beneficiaries': typeof AuthenticatedBeneficiariesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/deposits': typeof AuthenticatedDepositsRoute
   '/exchange': typeof AuthenticatedExchangeRoute
   '/kyc': typeof AuthenticatedKycRoute
   '/receive': typeof AuthenticatedReceiveRoute
   '/send': typeof AuthenticatedSendRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/transactions': typeof AuthenticatedTransactionsRoute
   '/virtual-accounts': typeof AuthenticatedVirtualAccountsRoute
   '/wallets': typeof AuthenticatedWalletsRoute
@@ -196,12 +221,15 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/solutions': typeof SolutionsRoute
+  '/_authenticated/api-keys': typeof AuthenticatedApiKeysRoute
+  '/_authenticated/beneficiaries': typeof AuthenticatedBeneficiariesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/deposits': typeof AuthenticatedDepositsRoute
   '/_authenticated/exchange': typeof AuthenticatedExchangeRoute
   '/_authenticated/kyc': typeof AuthenticatedKycRoute
   '/_authenticated/receive': typeof AuthenticatedReceiveRoute
   '/_authenticated/send': typeof AuthenticatedSendRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/transactions': typeof AuthenticatedTransactionsRoute
   '/_authenticated/virtual-accounts': typeof AuthenticatedVirtualAccountsRoute
   '/_authenticated/wallets': typeof AuthenticatedWalletsRoute
@@ -220,12 +248,15 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/solutions'
+    | '/api-keys'
+    | '/beneficiaries'
     | '/dashboard'
     | '/deposits'
     | '/exchange'
     | '/kyc'
     | '/receive'
     | '/send'
+    | '/settings'
     | '/transactions'
     | '/virtual-accounts'
     | '/wallets'
@@ -242,12 +273,15 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/solutions'
+    | '/api-keys'
+    | '/beneficiaries'
     | '/dashboard'
     | '/deposits'
     | '/exchange'
     | '/kyc'
     | '/receive'
     | '/send'
+    | '/settings'
     | '/transactions'
     | '/virtual-accounts'
     | '/wallets'
@@ -265,12 +299,15 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/solutions'
+    | '/_authenticated/api-keys'
+    | '/_authenticated/beneficiaries'
     | '/_authenticated/dashboard'
     | '/_authenticated/deposits'
     | '/_authenticated/exchange'
     | '/_authenticated/kyc'
     | '/_authenticated/receive'
     | '/_authenticated/send'
+    | '/_authenticated/settings'
     | '/_authenticated/transactions'
     | '/_authenticated/virtual-accounts'
     | '/_authenticated/wallets'
@@ -370,6 +407,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SolutionsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/api-keys': {
+      id: '/_authenticated/api-keys'
+      path: '/api-keys'
+      fullPath: '/api-keys'
+      preLoaderRoute: typeof AuthenticatedApiKeysRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/beneficiaries': {
+      id: '/_authenticated/beneficiaries'
+      path: '/beneficiaries'
+      fullPath: '/beneficiaries'
+      preLoaderRoute: typeof AuthenticatedBeneficiariesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -412,6 +463,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSendRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/transactions': {
       id: '/_authenticated/transactions'
       path: '/transactions'
@@ -444,12 +502,15 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedApiKeysRoute: typeof AuthenticatedApiKeysRoute
+  AuthenticatedBeneficiariesRoute: typeof AuthenticatedBeneficiariesRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDepositsRoute: typeof AuthenticatedDepositsRoute
   AuthenticatedExchangeRoute: typeof AuthenticatedExchangeRoute
   AuthenticatedKycRoute: typeof AuthenticatedKycRoute
   AuthenticatedReceiveRoute: typeof AuthenticatedReceiveRoute
   AuthenticatedSendRoute: typeof AuthenticatedSendRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTransactionsRoute: typeof AuthenticatedTransactionsRoute
   AuthenticatedVirtualAccountsRoute: typeof AuthenticatedVirtualAccountsRoute
   AuthenticatedWalletsRoute: typeof AuthenticatedWalletsRoute
@@ -457,12 +518,15 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedApiKeysRoute: AuthenticatedApiKeysRoute,
+  AuthenticatedBeneficiariesRoute: AuthenticatedBeneficiariesRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDepositsRoute: AuthenticatedDepositsRoute,
   AuthenticatedExchangeRoute: AuthenticatedExchangeRoute,
   AuthenticatedKycRoute: AuthenticatedKycRoute,
   AuthenticatedReceiveRoute: AuthenticatedReceiveRoute,
   AuthenticatedSendRoute: AuthenticatedSendRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTransactionsRoute: AuthenticatedTransactionsRoute,
   AuthenticatedVirtualAccountsRoute: AuthenticatedVirtualAccountsRoute,
   AuthenticatedWalletsRoute: AuthenticatedWalletsRoute,
