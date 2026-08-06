@@ -21,9 +21,15 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SolutionsRouteImport } from './routes/solutions'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedDepositsRouteImport } from './routes/_authenticated/deposits'
+import { Route as AuthenticatedExchangeRouteImport } from './routes/_authenticated/exchange'
 import { Route as AuthenticatedKycRouteImport } from './routes/_authenticated/kyc'
+import { Route as AuthenticatedReceiveRouteImport } from './routes/_authenticated/receive'
+import { Route as AuthenticatedSendRouteImport } from './routes/_authenticated/send'
+import { Route as AuthenticatedTransactionsRouteImport } from './routes/_authenticated/transactions'
 import { Route as AuthenticatedVirtualAccountsRouteImport } from './routes/_authenticated/virtual-accounts'
 import { Route as AuthenticatedWalletsRouteImport } from './routes/_authenticated/wallets'
+import { Route as AuthenticatedWithdrawalsRouteImport } from './routes/_authenticated/withdrawals'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -84,11 +90,37 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDepositsRoute = AuthenticatedDepositsRouteImport.update({
+  id: '/deposits',
+  path: '/deposits',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedExchangeRoute = AuthenticatedExchangeRouteImport.update({
+  id: '/exchange',
+  path: '/exchange',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedKycRoute = AuthenticatedKycRouteImport.update({
   id: '/kyc',
   path: '/kyc',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedReceiveRoute = AuthenticatedReceiveRouteImport.update({
+  id: '/receive',
+  path: '/receive',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSendRoute = AuthenticatedSendRouteImport.update({
+  id: '/send',
+  path: '/send',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedTransactionsRoute =
+  AuthenticatedTransactionsRouteImport.update({
+    id: '/transactions',
+    path: '/transactions',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedVirtualAccountsRoute =
   AuthenticatedVirtualAccountsRouteImport.update({
     id: '/virtual-accounts',
@@ -100,6 +132,12 @@ const AuthenticatedWalletsRoute = AuthenticatedWalletsRouteImport.update({
   path: '/wallets',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedWithdrawalsRoute =
+  AuthenticatedWithdrawalsRouteImport.update({
+    id: '/withdrawals',
+    path: '/withdrawals',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -113,9 +151,15 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/solutions': typeof SolutionsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/deposits': typeof AuthenticatedDepositsRoute
+  '/exchange': typeof AuthenticatedExchangeRoute
   '/kyc': typeof AuthenticatedKycRoute
+  '/receive': typeof AuthenticatedReceiveRoute
+  '/send': typeof AuthenticatedSendRoute
+  '/transactions': typeof AuthenticatedTransactionsRoute
   '/virtual-accounts': typeof AuthenticatedVirtualAccountsRoute
   '/wallets': typeof AuthenticatedWalletsRoute
+  '/withdrawals': typeof AuthenticatedWithdrawalsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -129,9 +173,15 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/solutions': typeof SolutionsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/deposits': typeof AuthenticatedDepositsRoute
+  '/exchange': typeof AuthenticatedExchangeRoute
   '/kyc': typeof AuthenticatedKycRoute
+  '/receive': typeof AuthenticatedReceiveRoute
+  '/send': typeof AuthenticatedSendRoute
+  '/transactions': typeof AuthenticatedTransactionsRoute
   '/virtual-accounts': typeof AuthenticatedVirtualAccountsRoute
   '/wallets': typeof AuthenticatedWalletsRoute
+  '/withdrawals': typeof AuthenticatedWithdrawalsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -147,9 +197,15 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/solutions': typeof SolutionsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/deposits': typeof AuthenticatedDepositsRoute
+  '/_authenticated/exchange': typeof AuthenticatedExchangeRoute
   '/_authenticated/kyc': typeof AuthenticatedKycRoute
+  '/_authenticated/receive': typeof AuthenticatedReceiveRoute
+  '/_authenticated/send': typeof AuthenticatedSendRoute
+  '/_authenticated/transactions': typeof AuthenticatedTransactionsRoute
   '/_authenticated/virtual-accounts': typeof AuthenticatedVirtualAccountsRoute
   '/_authenticated/wallets': typeof AuthenticatedWalletsRoute
+  '/_authenticated/withdrawals': typeof AuthenticatedWithdrawalsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -165,9 +221,15 @@ export interface FileRouteTypes {
     | '/signup'
     | '/solutions'
     | '/dashboard'
+    | '/deposits'
+    | '/exchange'
     | '/kyc'
+    | '/receive'
+    | '/send'
+    | '/transactions'
     | '/virtual-accounts'
     | '/wallets'
+    | '/withdrawals'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -181,9 +243,15 @@ export interface FileRouteTypes {
     | '/signup'
     | '/solutions'
     | '/dashboard'
+    | '/deposits'
+    | '/exchange'
     | '/kyc'
+    | '/receive'
+    | '/send'
+    | '/transactions'
     | '/virtual-accounts'
     | '/wallets'
+    | '/withdrawals'
   id:
     | '__root__'
     | '/'
@@ -198,9 +266,15 @@ export interface FileRouteTypes {
     | '/signup'
     | '/solutions'
     | '/_authenticated/dashboard'
+    | '/_authenticated/deposits'
+    | '/_authenticated/exchange'
     | '/_authenticated/kyc'
+    | '/_authenticated/receive'
+    | '/_authenticated/send'
+    | '/_authenticated/transactions'
     | '/_authenticated/virtual-accounts'
     | '/_authenticated/wallets'
+    | '/_authenticated/withdrawals'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -303,11 +377,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/deposits': {
+      id: '/_authenticated/deposits'
+      path: '/deposits'
+      fullPath: '/deposits'
+      preLoaderRoute: typeof AuthenticatedDepositsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/exchange': {
+      id: '/_authenticated/exchange'
+      path: '/exchange'
+      fullPath: '/exchange'
+      preLoaderRoute: typeof AuthenticatedExchangeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/kyc': {
       id: '/_authenticated/kyc'
       path: '/kyc'
       fullPath: '/kyc'
       preLoaderRoute: typeof AuthenticatedKycRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/receive': {
+      id: '/_authenticated/receive'
+      path: '/receive'
+      fullPath: '/receive'
+      preLoaderRoute: typeof AuthenticatedReceiveRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/send': {
+      id: '/_authenticated/send'
+      path: '/send'
+      fullPath: '/send'
+      preLoaderRoute: typeof AuthenticatedSendRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/transactions': {
+      id: '/_authenticated/transactions'
+      path: '/transactions'
+      fullPath: '/transactions'
+      preLoaderRoute: typeof AuthenticatedTransactionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/virtual-accounts': {
@@ -324,21 +433,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWalletsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/withdrawals': {
+      id: '/_authenticated/withdrawals'
+      path: '/withdrawals'
+      fullPath: '/withdrawals'
+      preLoaderRoute: typeof AuthenticatedWithdrawalsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDepositsRoute: typeof AuthenticatedDepositsRoute
+  AuthenticatedExchangeRoute: typeof AuthenticatedExchangeRoute
   AuthenticatedKycRoute: typeof AuthenticatedKycRoute
+  AuthenticatedReceiveRoute: typeof AuthenticatedReceiveRoute
+  AuthenticatedSendRoute: typeof AuthenticatedSendRoute
+  AuthenticatedTransactionsRoute: typeof AuthenticatedTransactionsRoute
   AuthenticatedVirtualAccountsRoute: typeof AuthenticatedVirtualAccountsRoute
   AuthenticatedWalletsRoute: typeof AuthenticatedWalletsRoute
+  AuthenticatedWithdrawalsRoute: typeof AuthenticatedWithdrawalsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDepositsRoute: AuthenticatedDepositsRoute,
+  AuthenticatedExchangeRoute: AuthenticatedExchangeRoute,
   AuthenticatedKycRoute: AuthenticatedKycRoute,
+  AuthenticatedReceiveRoute: AuthenticatedReceiveRoute,
+  AuthenticatedSendRoute: AuthenticatedSendRoute,
+  AuthenticatedTransactionsRoute: AuthenticatedTransactionsRoute,
   AuthenticatedVirtualAccountsRoute: AuthenticatedVirtualAccountsRoute,
   AuthenticatedWalletsRoute: AuthenticatedWalletsRoute,
+  AuthenticatedWithdrawalsRoute: AuthenticatedWithdrawalsRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
