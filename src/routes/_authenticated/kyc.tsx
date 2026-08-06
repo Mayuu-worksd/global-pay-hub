@@ -230,9 +230,9 @@ function Field({
 }: {
   id: string;
   label: string;
-  value?: string;
+  value?: string | undefined;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  type?: string;
+  type?: string | undefined;
 }) {
   return (
     <div className="space-y-2">

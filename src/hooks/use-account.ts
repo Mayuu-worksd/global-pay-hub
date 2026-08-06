@@ -196,8 +196,8 @@ export interface MovementInput {
   type: "deposit" | "withdrawal" | "send" | "receive";
   amount: number;
   currency: string;
-  counterparty?: string;
-  description?: string;
+  counterparty?: string | undefined;
+  description?: string | undefined;
 }
 
 export function useRecordMovement() {
