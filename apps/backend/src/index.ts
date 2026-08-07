@@ -7,7 +7,7 @@ import routes from "./routes";
 import { logger } from "./utils/logger";
 import { startDepositMonitor } from "./crypto/deposit-monitor/monitor";
 
-dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
