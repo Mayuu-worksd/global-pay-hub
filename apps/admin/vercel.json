@@ -1,0 +1,7 @@
+{
+  "buildCommand": "cd ../.. && npm install && cd apps/admin && npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "echo 'skip'",
+  "framework": null,
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
