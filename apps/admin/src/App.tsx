@@ -143,7 +143,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<string>("dashboard");
 
   // Support tickets - fetched from DB
-  const [tickets, setTickets] = useState<any[]>([]);
+  const [tickets] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
 
   useEffect(() => {
