@@ -20,7 +20,9 @@ import {
   AlertTriangle,
   Link,
   BookOpen,
-  ShieldCheck
+  ShieldCheck,
+  Menu,
+  X
 } from "lucide-react";
 
 interface UserProfile {
@@ -141,6 +143,7 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<string>("dashboard");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Support tickets - fetched from DB
   const [tickets] = useState<any[]>([]);
@@ -595,14 +598,28 @@ export default function App() {
       <div className="fixed top-0 left-0 w-[40rem] h-[40rem] bg-blue-600/10 rounded-full mix-blend-screen filter blur-[120px] pointer-events-none" />
       <div className="fixed bottom-0 right-0 w-[40rem] h-[40rem] bg-indigo-600/10 rounded-full mix-blend-screen filter blur-[120px] pointer-events-none" />
 
+      {/* MOBILE OVERLAY */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* SIDEBAR NAVIGATION */}
-      <aside className="w-full lg:w-[264px] bg-white/5 backdrop-blur-2xl border-b lg:border-b-0 lg:border-r border-white/10 flex flex-col shrink-0 relative z-10">
+      <aside className={`fixed inset-y-0 left-0 z-50 w-[264px] bg-[#0B101E]/95 lg:bg-white/5 backdrop-blur-2xl border-r border-white/10 flex flex-col transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="h-16 flex items-center px-6 border-b border-white/10 shrink-0 justify-between">
           <div className="flex items-center gap-2">
             <span className="size-6 bg-blue-600 rounded-lg flex items-center justify-center text-xs font-black text-white shadow-[0_0_10px_rgba(37,99,235,0.5)]">G</span>
             <span className="font-display font-black text-lg tracking-tight text-white">GlobalPay Admin</span>
           </div>
-          <span className="inline-flex items-center rounded-full bg-blue-500/20 px-2 py-0.5 text-[9px] font-bold text-blue-300 border border-blue-500/30">
+          <button 
+            className="lg:hidden text-slate-400 hover:text-white"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <X className="size-5" />
+          </button>
+          <span className="hidden lg:inline-flex items-center rounded-full bg-blue-500/20 px-2 py-0.5 text-[9px] font-bold text-blue-300 border border-blue-500/30">
             v2.1 Live
           </span>
         </div>
@@ -634,6 +651,7 @@ export default function App() {
               onClick={() => {
                 setActiveTab(item.id);
                 setSelectedItem(null);
+                setIsMobileMenuOpen(false);
               }}
               className={`w-full flex items-center justify-between rounded-xl px-4 py-2.5 text-xs font-semibold tracking-wide transition-all ${
                 activeTab === item.id
@@ -677,10 +695,18 @@ export default function App() {
       <main className="flex-1 flex flex-col min-w-0 relative z-10">
         
         {/* Header */}
-        <header className="h-16 border-b border-white/10 px-8 flex items-center justify-between bg-white/5 backdrop-blur-md shrink-0">
-          <div>
-            <h2 className="font-display font-bold text-lg text-white">Compliance Workspace</h2>
-            <p className="text-[10px] text-slate-400 font-medium capitalize">Viewing: {activeTab.replace("_", " ")}</p>
+        <header className="h-16 border-b border-white/10 px-4 lg:px-8 flex items-center justify-between bg-white/5 backdrop-blur-md shrink-0">
+          <div className="flex items-center gap-3">
+            <button 
+              className="lg:hidden text-slate-300 hover:text-white p-1"
+              onClick={() => setIsMobileMenuOpen(true)}
+            >
+              <Menu className="size-6" />
+            </button>
+            <div>
+              <h2 className="font-display font-bold text-lg text-white leading-none">Workspace</h2>
+              <p className="text-[10px] text-slate-400 font-medium capitalize mt-1">Viewing: {activeTab.replace("_", " ")}</p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             {loadingData && <span className="text-xs text-blue-400 animate-pulse mr-2 font-bold">Syncing data...</span>}
@@ -694,12 +720,12 @@ export default function App() {
         </header>
 
         {/* Content Body */}
-        <div className="flex-1 overflow-y-auto p-8 space-y-8">
+        <div className="flex-1 overflow-y-auto p-4 lg:p-8 space-y-6 lg:space-y-8">
           
           {/* TAB 1: DASHBOARD HOME */}
           {activeTab === "dashboard" && (
             <div className="space-y-6">
-              <div className="grid gap-4 sm:grid-cols-4">
+              <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
                 <div className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-lg rounded-2xl p-5 space-y-1">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Users</p>
                   <p className="font-display text-3xl font-extrabold text-white drop-shadow-md">{profiles.filter(p => p.role !== "merchant").length}</p>
@@ -718,7 +744,7 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-4">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 <div className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-lg rounded-2xl p-5">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Transactions</p>
                   <p className="font-display text-2xl font-bold text-white pt-1">{transactions.length}</p>
