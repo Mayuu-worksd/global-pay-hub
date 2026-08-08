@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS public.business_profiles (
 -- Create KYC records
 CREATE TABLE IF NOT EXISTS public.kyc_records (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    profile_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     sumsub_applicant_id VARCHAR(100) UNIQUE,
     status verification_status DEFAULT 'pending' NOT NULL,
     reject_reason TEXT,
@@ -100,5 +100,5 @@ ALTER TABLE public.webhook_events ENABLE ROW LEVEL SECURITY;
 -- Simple select policies
 CREATE POLICY "Users can view their own record" ON public.users FOR SELECT USING (auth.uid() = id);
 CREATE POLICY "Merchants can view their business profile" ON public.business_profiles FOR SELECT USING (auth.uid() = merchant_id);
-CREATE POLICY "Users can view their KYC records" ON public.kyc_records FOR SELECT USING (auth.uid() = profile_id);
+CREATE POLICY "Users can view their KYC records" ON public.kyc_records FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Merchants can view their API keys" ON public.merchant_api_keys FOR SELECT USING (auth.uid() = merchant_id);

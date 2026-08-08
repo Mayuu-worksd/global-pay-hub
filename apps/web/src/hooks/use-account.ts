@@ -51,6 +51,28 @@ export function useKyc() {
         .eq("user_id", userId)
         .maybeSingle();
       if (error) throw error;
+
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
+          const res = await fetch(`${backendUrl}/api/kyc/status/${userId}`, {
+            headers: {
+              "Authorization": `Bearer ${session.access_token}`,
+            },
+          });
+          if (res.ok) {
+            const backendKyc = await res.json();
+            return {
+              ...data,
+              status: backendKyc.status || data?.status || "not_started",
+              rejection_reason: backendKyc.rejection_reason || null,
+            };
+          }
+        }
+      } catch (e) {
+        console.warn("Could not fetch KYC status from backend:", e);
+      }
       return data;
     },
   });
@@ -61,7 +83,25 @@ export function useSubmitKyc() {
   const router = useRouter();
   return useMutation({
     mutationFn: async (values: Record<string, unknown>) => {
-      return await serverSubmitKyc({ data: values });
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
+      const res = await fetch(`${backendUrl}/api/kyc/start`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify(values),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to submit KYC");
+      }
+
+      return await res.json();
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["kyc"] });

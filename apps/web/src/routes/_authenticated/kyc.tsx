@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { useKyc, useSubmitKyc } from "@/hooks/use-account";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/kyc")({
   head: () => ({
@@ -157,6 +158,7 @@ function KycPage() {
             <Field id="id_document_number" label="Document number" onChange={set("id_document_number")} value={values["id_document_number"]} />
             <div className="sm:col-span-2">
               <FileUploader
+                documentType={values["id_document_type"] || "passport"}
                 value={values["id_document_url"]}
                 onChange={(url) => setValues((prev) => ({ ...prev, id_document_url: url }))}
               />
@@ -242,28 +244,59 @@ function Field({
 }
 
 function FileUploader({
+  documentType,
   onChange,
   value,
 }: {
+  documentType: string;
   onChange: (url: string) => void;
   value?: string;
 }) {
   const [uploading, setUploading] = useState(false);
   const [fileName, setFileName] = useState("");
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File size exceeds 10MB limit");
+      return;
+    }
 
     setUploading(true);
     setFileName(file.name);
 
-    // Simulate upload delay
-    setTimeout(() => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("document_type", documentType);
+
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
+      const res = await fetch(`${backendUrl}/api/kyc/upload`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${session.access_token}`,
+        },
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to upload document");
+      }
+
+      const data = await res.json();
       setUploading(false);
-      onChange(`https://gcztbdlbvcjtnwicdiqc.supabase.co/storage/v1/object/public/kyc-documents/${file.name}`);
+      onChange(data.document_url);
       toast.success("Document uploaded successfully!");
-    }, 1500);
+    } catch (error: any) {
+      setUploading(false);
+      toast.error(error.message || "Failed to upload document");
+    }
   };
 
   return (

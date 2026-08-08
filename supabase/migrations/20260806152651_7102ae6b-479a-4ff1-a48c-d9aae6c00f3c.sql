@@ -166,6 +166,7 @@ ALTER TABLE public.beneficiaries ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "own beneficiaries" ON public.beneficiaries FOR ALL TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 CREATE TRIGGER beneficiaries_updated BEFORE UPDATE ON public.beneficiaries FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
+ALTER TABLE public.transactions ADD COLUMN IF NOT EXISTS beneficiary_id UUID;
 ALTER TABLE public.transactions ADD CONSTRAINT transactions_beneficiary_fk FOREIGN KEY (beneficiary_id) REFERENCES public.beneficiaries(id) ON DELETE SET NULL;
 
 CREATE TABLE public.settings (

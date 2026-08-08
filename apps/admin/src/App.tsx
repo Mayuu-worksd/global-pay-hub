@@ -197,16 +197,18 @@ export default function App() {
 
     // 1. Fetch user profiles
     try {
-      const { data: profileData } = await supabaseAdmin
+      const { data: profileData, error: profileError } = await supabaseAdmin
         .from("profiles")
         .select("id, email, full_name, role, verification_status, created_at")
         .order("created_at", { ascending: false });
+      if (profileError) console.error("[Admin] profiles error:", profileError);
       if (profileData) {
         loadedProfiles = profileData;
         setProfiles(profileData);
       }
+      console.log("[Admin] profiles loaded:", profileData?.length ?? 0);
     } catch (err) {
-      console.warn("Failed to load profiles:", err);
+      console.error("[Admin] Failed to load profiles:", err);
     }
 
     // 2. Fetch merchants (users who chose merchant role)
