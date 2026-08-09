@@ -342,6 +342,26 @@ export default function App() {
       console.warn("Failed to load webhooks:", err);
     }
 
+    // 9. Fetch Audit Logs
+    try {
+      const { data: logsData } = await supabaseAdmin
+        .from("audit_logs")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (logsData) {
+        setAuditLogs(logsData.map((l: any) => ({
+          id: l.id,
+          admin: l.details?.admin_email || "System",
+          action: l.action,
+          target: l.details?.target || l.entity_id || "System",
+          timestamp: l.created_at
+        })));
+      }
+    } catch (err) {
+      console.warn("Failed to load audit logs:", err);
+    }
+
     setLoadingData(false);
   }
 
@@ -357,17 +377,19 @@ export default function App() {
 
       if (error) throw error;
 
-      // Add to mock audit logs
-      setAuditLogs(prev => [
-        {
-          id: `a-${Date.now()}`,
-          admin: session.user.email,
-          action: targetStatus === "rejected" ? "SUSPEND_USER" : "REACTIVATE_USER",
-          target: profiles.find(p => p.id === userId)?.email || userId,
-          timestamp: new Date().toISOString()
-        },
-        ...prev
-      ]);
+      // Add to persistent audit logs
+      const actionName = targetStatus === "rejected" ? "SUSPEND_USER" : "REACTIVATE_USER";
+      const targetEmail = profiles.find(p => p.id === userId)?.email || userId;
+      await supabaseAdmin.from("audit_logs").insert({
+        user_id: session?.user?.id || null,
+        action: actionName,
+        entity_type: "profile",
+        entity_id: userId,
+        details: {
+          admin_email: session?.user?.email || "System",
+          target: targetEmail
+        }
+      });
 
       alert(`User status changed to ${targetStatus === "rejected" ? "Suspended" : "Active"}!`);
       await loadAdminData();
@@ -388,17 +410,19 @@ export default function App() {
 
       if (error) throw error;
 
-      // Add to mock audit logs
-      setAuditLogs(prev => [
-        {
-          id: `a-${Date.now()}`,
-          admin: session.user.email,
-          action: targetStatus === "rejected" ? "SUSPEND_MERCHANT" : "REACTIVATE_MERCHANT",
-          target: merchants.find(m => m.id === merchantId)?.legal_name || merchantId,
-          timestamp: new Date().toISOString()
-        },
-        ...prev
-      ]);
+      // Add to persistent audit logs
+      const actionName = targetStatus === "rejected" ? "SUSPEND_MERCHANT" : "REACTIVATE_MERCHANT";
+      const targetName = merchants.find(m => m.id === merchantId)?.legal_name || merchantId;
+      await supabaseAdmin.from("audit_logs").insert({
+        user_id: session?.user?.id || null,
+        action: actionName,
+        entity_type: "business_profile",
+        entity_id: merchantId,
+        details: {
+          admin_email: session?.user?.email || "System",
+          target: targetName
+        }
+      });
 
       alert(`Merchant status changed to ${targetStatus === "rejected" ? "Suspended" : "Active"}!`);
       await loadAdminData();
@@ -420,17 +444,18 @@ export default function App() {
 
       if (error) throw error;
 
-      // Add to mock audit logs
-      setAuditLogs(prev => [
-        {
-          id: `a-${Date.now()}`,
-          admin: session.user.email,
-          action: targetState ? "UNFREEZE_WALLET" : "FREEZE_WALLET",
-          target: walletId,
-          timestamp: new Date().toISOString()
-        },
-        ...prev
-      ]);
+      // Add to persistent audit logs
+      const actionName = targetState ? "UNFREEZE_WALLET" : "FREEZE_WALLET";
+      await supabaseAdmin.from("audit_logs").insert({
+        user_id: session?.user?.id || null,
+        action: actionName,
+        entity_type: table,
+        entity_id: walletId,
+        details: {
+          admin_email: session?.user?.email || "System",
+          target: walletId
+        }
+      });
 
       alert(`Wallet state updated to ${targetState ? "Active" : "Frozen"}!`);
       await loadAdminData();

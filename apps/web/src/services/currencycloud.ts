@@ -70,8 +70,7 @@ export const currencycloudService = {
   async createSubAccount(userId: string, companyName: string) {
     const config = readCurrencycloudConfig();
     if (!config) {
-      console.log("[Currencycloud Mock] Creating sub-account for", userId);
-      return { id: `cc_acc_${Math.random().toString(36).substring(2, 10)}` };
+      throw new Error("Currencycloud API credentials not configured.");
     }
 
     const res = await ccRequest("/v2/accounts/create", {
@@ -94,8 +93,7 @@ export const currencycloudService = {
   async createContact(accountId: string, firstName: string, lastName: string, email: string) {
     const config = readCurrencycloudConfig();
     if (!config) {
-      console.log("[Currencycloud Mock] Creating contact on account", accountId);
-      return { id: `cc_cont_${Math.random().toString(36).substring(2, 10)}` };
+      throw new Error("Currencycloud API credentials not configured.");
     }
 
     const res = await ccRequest("/v2/contacts/create", {
@@ -118,16 +116,7 @@ export const currencycloudService = {
   async createVirtualAccount(accountId: string, currency: string) {
     const config = readCurrencycloudConfig();
     if (!config) {
-      console.log("[Currencycloud Mock] Creating virtual account on", accountId, "currency:", currency);
-      const isEur = currency === "EUR";
-      return {
-        accountNumber: String(Math.floor(1e11 + Math.random() * 8e11)),
-        routingNumber: isEur ? null : "084009519",
-        iban: isEur ? `DE89${Math.floor(1e17 + Math.random() * 8e17)}` : null,
-        swift_bic: isEur ? "NEXUDEB2XXX" : "NEXUUS33XXX",
-        bankName: isEur ? "Nexus Pay Europe SA" : "Nexus Pay Trust NA",
-        bankAddress: isEur ? "12 Rue Neuve, 1000 Brussels, BE" : "8 Bridge St, New York, NY",
-      };
+      throw new Error("Currencycloud API credentials not configured.");
     }
 
     const res = await ccRequest("/v2/virtual_accounts/create", {
@@ -156,8 +145,7 @@ export const currencycloudService = {
   async getBalances(accountId: string) {
     const config = readCurrencycloudConfig();
     if (!config) {
-      console.log("[Currencycloud Mock] Querying balances for", accountId);
-      return [];
+      throw new Error("Currencycloud API credentials not configured.");
     }
 
     const res = await ccRequest(`/v2/balances/find?account_id=${accountId}`);
@@ -181,8 +169,7 @@ export const currencycloudService = {
   }) {
     const config = readCurrencycloudConfig();
     if (!config) {
-      console.log("[Currencycloud Mock] Saving beneficiary in directory:", data.name);
-      return { id: `cc_ben_${Math.random().toString(36).substring(2, 10)}` };
+      throw new Error("Currencycloud API credentials not configured.");
     }
 
     const bodyParams: Record<string, string> = {
@@ -216,8 +203,7 @@ export const currencycloudService = {
   }) {
     const config = readCurrencycloudConfig();
     if (!config) {
-      console.log("[Currencycloud Mock] Initiating payout for reference", data.reference);
-      return { id: `cc_pay_${Math.random().toString(36).substring(2, 10)}`, status: "completed" };
+      throw new Error("Currencycloud API credentials not configured.");
     }
 
     const res = await ccRequest("/v2/payments/create", {

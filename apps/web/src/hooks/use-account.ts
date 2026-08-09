@@ -174,10 +174,16 @@ export function useCreateWallet() {
           .insert({ user_id: userId, currency: code, label: `${code} wallet` });
         if (error) throw error;
       } else {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) throw new Error("Not authenticated");
+        
         // Call backend to generate real Tatum address
         const res = await fetch(`${import.meta.env.VITE_BACKEND_URL || "http://localhost:4000"}/api/crypto/address`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session.access_token}`
+          },
           body: JSON.stringify({ asset: code, userId }),
         });
         if (!res.ok) throw new Error("Failed to generate crypto address");

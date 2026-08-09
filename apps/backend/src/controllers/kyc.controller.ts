@@ -3,6 +3,8 @@ import { AuthenticatedRequest } from "../middleware/auth";
 import { KYCService } from "../services/KYCService";
 import { supabaseAdmin } from "../config/database";
 import { NotificationService } from "../services/NotificationService";
+import { ProvisioningService } from "../services/ProvisioningService";
+import { logger } from "../utils/logger";
 import { z } from "zod";
 
 const startKycSchema = z.object({
@@ -51,6 +53,65 @@ export async function startKyc(req: AuthenticatedRequest, res: Response) {
     if (!userId || !email) return res.status(401).json({ error: "Unauthorized" });
 
     const validated = startKycSchema.parse(req.body);
+
+    if (process.env.AUTO_APPROVE_KYC === "true") {
+      logger.info(`AUTO_APPROVE_KYC enabled. Automatically approving user ${userId}`);
+      
+      const fullName = `${validated.first_name} ${validated.last_name}`;
+      await supabaseAdmin.from("profiles").update({
+        full_name: fullName,
+        phone: validated.phone,
+        country: validated.country,
+        profile_completed: true,
+        verification_status: "approved",
+        kyc_completed: true,
+        onboarding_completed: true,
+      }).eq("id", userId);
+
+      await supabaseAdmin.from("kyc").upsert({
+        user_id: userId,
+        first_name: validated.first_name,
+        last_name: validated.last_name,
+        date_of_birth: new Date(validated.date_of_birth),
+        nationality: validated.nationality,
+        phone: validated.phone,
+        address_line1: validated.address_line1,
+        address_line2: validated.address_line2,
+        city: validated.city,
+        state: validated.state,
+        postal_code: validated.postal_code,
+        country: validated.country,
+        occupation: validated.occupation,
+        employment_status: validated.employment_status,
+        source_of_funds: validated.source_of_funds,
+        id_document_type: validated.id_document_type,
+        id_document_number: validated.id_document_number,
+        is_business: validated.is_business || false,
+        business_name: validated.business_name,
+        business_registration_number: validated.business_registration_number,
+        business_country: validated.business_country,
+        business_website: validated.business_website,
+        status: "approved",
+        submitted_at: new Date().toISOString(),
+      }, { onConflict: "user_id" });
+
+      await supabaseAdmin.from("kyc_records").upsert({
+        user_id: userId,
+        provider_reference: `auto_approved_${userId}`,
+        status: "approved",
+        provider: "auto",
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "user_id" });
+
+      const kycDetails = { ...validated, email };
+      await ProvisioningService.provisionUser(userId, kycDetails, email, validated.phone);
+
+      return res.json({
+        status: "approved",
+        provider_reference: `auto_approved_${userId}`,
+        url: "",
+      });
+    }
 
     const kycProvider = KYCService.getProvider();
     const verification = await kycProvider.createVerification(userId, email, validated);

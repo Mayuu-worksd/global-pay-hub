@@ -35,11 +35,7 @@ export class SumsubAdapter implements IKYCProvider {
 
   async createVerification(userId: string, email: string, details?: any): Promise<{ id: string; url: string }> {
     if (!this.apiKey || !this.secretKey) {
-      console.warn("[Sumsub Mock] Creating verification for", userId);
-      return {
-        id: `mock_applicant_${Math.random().toString(36).substring(2, 10)}`,
-        url: `https://api.sumsub.com/idensic/static/main.js?userId=${userId}`,
-      };
+      throw new Error("Sumsub API credentials not configured.");
     }
 
     const path = "/resources/applicants?levelName=basic-kyc-level";
@@ -76,8 +72,7 @@ export class SumsubAdapter implements IKYCProvider {
 
   async verifyDocument(applicantId: string, documentType: string, documentImage: Buffer, mimeType: string, filename: string): Promise<{ status: "pending" | "approved" | "rejected" }> {
     if (!this.apiKey || !this.secretKey) {
-      console.warn("[Sumsub Mock] Uploading document for", applicantId);
-      return { status: "pending" };
+      throw new Error("Sumsub API credentials not configured.");
     }
 
     const path = `/resources/applicants/${applicantId}/info/idDoc`;
@@ -118,8 +113,7 @@ export class SumsubAdapter implements IKYCProvider {
 
   async getStatus(verificationId: string): Promise<{ status: "pending" | "approved" | "rejected"; reason?: string }> {
     if (!this.apiKey || !this.secretKey) {
-      console.warn("[Sumsub Mock] Getting status for", verificationId);
-      return { status: "pending" };
+      throw new Error("Sumsub API credentials not configured.");
     }
 
     const path = `/resources/applicants/${verificationId}/status`;

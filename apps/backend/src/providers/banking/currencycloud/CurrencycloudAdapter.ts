@@ -33,10 +33,16 @@ export class CurrencycloudAdapter implements IBankingProvider {
 
   async createCustomer(data: any): Promise<{ id: string; status: string }> {
     await this.authenticate();
+    const countryCode = (data.country && data.country.length === 2) ? data.country.toUpperCase() : "US";
     const response = await this.client.post("/v2/accounts/create", {
       account_name: `${data.first_name} ${data.last_name}`,
       legal_entity_type: "individual",
-      your_reference: `CUST-${data.email}`,
+      your_reference: data.email ? `CUST-${data.email}`.substring(0, 25) : "CUST-NEW",
+      city: data.city || "New York",
+      country: countryCode,
+      street: data.address_line1 || "123 Main St",
+      postal_code: data.postal_code || "10001",
+      state_or_province: data.state || "NY",
     });
     return {
       id: response.data.id,

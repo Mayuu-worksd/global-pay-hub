@@ -105,9 +105,9 @@ function DashboardPage() {
   const isKycApproved = kycStatus === "approved";
 
   const cards = [
-    { label: "Total balance", value: formatFiat(fiatUsd + cryptoUsd), hint: "Across all wallets" },
-    { label: "Fiat balance", value: formatFiat(fiatUsd), hint: `${fiat.length} wallets` },
-    { label: "Crypto balance", value: formatFiat(cryptoUsd), hint: `${crypto.length} wallets` },
+    { label: "Total balance", value: "NOT READY", hint: "Awaiting live FX provider" },
+    { label: "Fiat balance", value: "NOT READY", hint: `${fiat.length} wallets (Awaiting FX)` },
+    { label: "Crypto balance", value: "NOT READY", hint: `${crypto.length} wallets (Awaiting FX)` },
   ];
 
   return (
@@ -247,19 +247,10 @@ function DashboardPage() {
 
           <div className="rounded-2xl border border-border bg-card p-6">
             <h2 className="font-display text-lg font-bold text-foreground">Reference rates</h2>
-            <ul className="mt-4 space-y-2.5">
-              {["EUR", "BTC", "ETH", "USDT"].map((code) => (
-                <li key={code} className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">1 {code}</span>
-                  <span className="font-mono text-foreground">
-                    {formatFiat(REFERENCE_RATES[code] ?? 0)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-4 text-xs text-muted-foreground">
-              Indicative rates. Live pricing arrives with the FX provider integration.
-            </p>
+            <div className="mt-4 rounded-xl border border-dashed border-border p-8 text-center">
+               <p className="text-sm text-muted-foreground font-semibold">NOT READY</p>
+               <p className="mt-2 text-xs text-muted-foreground">Live pricing arrives with the FX provider integration.</p>
+            </div>
           </div>
         </div>
       </section>

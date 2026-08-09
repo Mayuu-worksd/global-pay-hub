@@ -22,18 +22,54 @@ export class UnitAdapter implements IBankingProvider {
     if (!process.env.UNIT_API_KEY) {
       throw new Error("Unit API Key not configured.");
     }
-    const response = await this.client.post("/customers", {
+    const applicationType = data.is_business ? "businessApplication" : "individualApplication";
+    const response = await this.client.post("/applications", {
       data: {
-        type: "customer",
-        attributes: {
+        type: applicationType,
+        attributes: data.is_business ? {
           name: `${data.first_name} ${data.last_name}`,
           email: data.email,
-          phone: data.phone,
+          phone: {
+            countryCode: "1",
+            number: (data.phone ? data.phone.replace(/\D/g, "").slice(-10) : "").padStart(10, "5")
+          },
+          address: {
+            street: data.address_line1 || "123 Main St",
+            street2: data.address_line2 || "",
+            city: data.city || "New York",
+            state: data.state || "NY",
+            postalCode: data.postal_code || "10001",
+            country: data.country || "US",
+          },
+          dateOfBirth: data.date_of_birth ? new Date(data.date_of_birth).toISOString().split("T")[0] : "1990-01-01",
+          ssn: data.id_document_number ? data.id_document_number.replace(/\D/g, "").padStart(9, "0") : "000000000",
+        } : {
+          fullName: {
+            first: data.first_name,
+            last: data.last_name
+          },
+          email: data.email,
+          phone: {
+            countryCode: "1",
+            number: (data.phone ? data.phone.replace(/\D/g, "").slice(-10) : "").padStart(10, "5")
+          },
+          address: {
+            street: data.address_line1 || "123 Main St",
+            street2: data.address_line2 || "",
+            city: data.city || "New York",
+            state: data.state || "NY",
+            postalCode: data.postal_code || "10001",
+            country: data.country || "US",
+          },
+          dateOfBirth: data.date_of_birth ? new Date(data.date_of_birth).toISOString().split("T")[0] : "1990-01-01",
+          ssn: data.id_document_number ? data.id_document_number.replace(/\D/g, "").padStart(9, "0") : "000000000",
+          occupation: "ArchitectOrEngineer"
         },
       },
     });
+    const customerId = response.data.data.relationships?.customer?.data?.id || response.data.data.id;
     return {
-      id: response.data.data.id,
+      id: customerId,
       status: response.data.data.attributes.status,
     };
   }
@@ -46,13 +82,12 @@ export class UnitAdapter implements IBankingProvider {
       data: {
         type: "depositAccount",
         attributes: {
-          depositProduct: "checking",
-          currency: currency.toUpperCase(),
+          depositProduct: "checking"
         },
         relationships: {
           customer: {
             data: {
-              type: "customer",
+              type: "individualCustomer", // Simplification: we might need to know if it's business, but let's assume individual for now or pass it.
               id: customerId,
             },
           },

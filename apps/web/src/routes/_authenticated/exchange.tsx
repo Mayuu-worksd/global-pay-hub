@@ -158,8 +158,8 @@ function ExchangePage() {
             </div>
             <div className="rounded-xl border border-border bg-card px-4 py-3">
               <p className="text-xs text-muted-foreground">You receive</p>
-              <p className="mt-1 font-display text-xl font-bold text-foreground">
-                {formatAmount(converted, toCode)}
+              <p className="mt-1 font-display text-lg font-bold text-muted-foreground">
+                NOT READY
               </p>
             </div>
           </div>
@@ -167,9 +167,8 @@ function ExchangePage() {
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-border pt-5">
           <p className="text-sm text-muted-foreground">
-            1 {fromCode} ={" "}
             <span className="font-medium text-foreground">
-              {rate.toLocaleString(undefined, { maximumFractionDigits: 8 })} {toCode}
+              NOT READY: Live FX Provider Required
             </span>{" "}
             · 0% platform fee on your first $10,000
           </p>

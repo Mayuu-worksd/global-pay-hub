@@ -29,12 +29,8 @@ async function tatumGenerateAddress(asset: string): Promise<string> {
       return addr.data.address;
     }
   } catch (err: any) {
-    console.warn(`Tatum address generation failed for ${asset}, using fallback:`, err.message);
+    throw new Error(`Tatum address generation failed for ${asset}: ${err.message}`);
   }
-  // Fallback if Tatum fails
-  if (asset === "BTC") return `bc1q${randomHex(32)}`;
-  if (asset === "USDT") return `T${randomHex(33)}`;
-  return `0x${randomHex(40)}`;
 }
 
 export const serverSubmitKyc = createServerFn({ method: "POST" })
@@ -277,17 +273,13 @@ export const serverRecordMovement = createServerFn({ method: "POST" })
 
     // Handle withdrawal payout mapping via Currencycloud
     if (data.type === "withdrawal" || data.type === "send") {
-      try {
-        const payout = await currencycloudService.createPayout({
-          beneficiaryId: data.counterparty || "",
-          currency: data.currency,
-          amount: data.amount,
-          reference: `TX-${randomHex(8).toUpperCase()}`,
-        });
-        payoutStatus = payout.status === "completed" ? "completed" : "pending";
-      } catch (err) {
-        console.warn("Could not submit CC payout, falling back to database logging", err);
-      }
+      const payout = await currencycloudService.createPayout({
+        beneficiaryId: data.counterparty || "",
+        currency: data.currency,
+        amount: data.amount,
+        reference: `TX-${randomHex(8).toUpperCase()}`,
+      });
+      payoutStatus = payout.status === "completed" ? "completed" : "pending";
     }
 
     // Record in local database
@@ -332,20 +324,16 @@ export const serverSaveBeneficiary = createServerFn({ method: "POST" })
 
     // Register with Currencycloud
     let ccBenId = "";
-    try {
-      const ben = await currencycloudService.createBeneficiary({
-        name: String(values.name || ""),
-        currency: String(values.currency || "USD"),
-        country: String(values.country || "US"),
-        iban: values.iban ? String(values.iban) : undefined,
-        account_number: values.account_number ? String(values.account_number) : undefined,
-        routing_number: values.routing_number ? String(values.routing_number) : undefined,
-        swift_bic: values.swift_bic ? String(values.swift_bic) : undefined,
-      });
-      ccBenId = ben.id;
-    } catch (err) {
-      console.warn("Could not register beneficiary on Currencycloud", err);
-    }
+    const ben = await currencycloudService.createBeneficiary({
+      name: String(values.name || ""),
+      currency: String(values.currency || "USD"),
+      country: String(values.country || "US"),
+      iban: values.iban ? String(values.iban) : undefined,
+      account_number: values.account_number ? String(values.account_number) : undefined,
+      routing_number: values.routing_number ? String(values.routing_number) : undefined,
+      swift_bic: values.swift_bic ? String(values.swift_bic) : undefined,
+    });
+    ccBenId = ben.id;
 
     // Insert locally
     const { error } = await supabaseAdmin.from("beneficiaries").insert({

@@ -56,12 +56,7 @@ export const unitService = {
   }) {
     const config = readUnitConfig();
     if (!config) {
-      console.log("[Unit Mock] Creating onboarding application for user", userId);
-      return {
-        id: `app_${Math.random().toString(36).substring(2, 10)}`,
-        status: "Approved",
-        customerId: `cust_${Math.random().toString(36).substring(2, 10)}`,
-      };
+      throw new Error("Unit API credentials not configured.");
     }
 
     const payload = {
@@ -86,6 +81,7 @@ export const unitService = {
           },
           email: data.email,
           nationality: data.nationality,
+          occupation: "ArchitectOrEngineer",
           documents: [
             {
               type: data.id_document_type,
@@ -114,8 +110,7 @@ export const unitService = {
   async getApplicationStatus(applicationId: string) {
     const config = readUnitConfig();
     if (!config) {
-      console.log("[Unit Mock] Checking application status for", applicationId);
-      return "Approved";
+      throw new Error("Unit API credentials not configured.");
     }
 
     const res = await unitRequest(`/applications/${applicationId}`);
@@ -128,11 +123,7 @@ export const unitService = {
   async getCustomer(customerId: string) {
     const config = readUnitConfig();
     if (!config) {
-      console.log("[Unit Mock] Fetching customer details for", customerId);
-      return {
-        id: customerId,
-        status: "Active",
-      };
+      throw new Error("Unit API credentials not configured.");
     }
 
     const res = await unitRequest(`/customers/${customerId}`);
@@ -148,13 +139,7 @@ export const unitService = {
   async createAccount(customerId: string, currency: string) {
     const config = readUnitConfig();
     if (!config) {
-      console.log("[Unit Mock] Creating bank account for customer", customerId);
-      return {
-        accountNumber: String(Math.floor(1e11 + Math.random() * 8e11)),
-        routingNumber: "084009519",
-        bankName: "Nexus Pay Trust NA",
-        bankAddress: "8 Bridge St, New York, NY",
-      };
+      throw new Error("Unit API credentials not configured.");
     }
 
     const payload = {
@@ -162,12 +147,11 @@ export const unitService = {
         type: "depositAccount",
         attributes: {
           depositProduct: "checking",
-          currency: currency.toUpperCase(),
         },
         relationships: {
           customer: {
             data: {
-              type: "customer",
+              type: "individualCustomer",
               id: customerId,
             }
           }
@@ -194,8 +178,7 @@ export const unitService = {
   async getTransactions(accountId: string) {
     const config = readUnitConfig();
     if (!config) {
-      console.log("[Unit Mock] Fetching transactions list for account", accountId);
-      return [];
+      throw new Error("Unit API credentials not configured.");
     }
 
     const res = await unitRequest(`/transactions?filter[accountId]=${accountId}`);

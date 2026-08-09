@@ -5,6 +5,7 @@ import { UnitAdapter } from "../providers/banking/unit/UnitAdapter";
 import { CurrencycloudAdapter } from "../providers/banking/currencycloud/CurrencycloudAdapter";
 import { TatumAdapter } from "../providers/crypto/tatum/TatumAdapter";
 import { NotificationService } from "../services/NotificationService";
+import { ProvisioningService } from "../services/ProvisioningService";
 
 export async function handleUnitWebhook(req: Request, res: Response) {
   try {
@@ -20,13 +21,61 @@ export async function handleUnitWebhook(req: Request, res: Response) {
       processed_at: new Date().toISOString(),
     });
 
-    // Handle specific event types
-    // Unit events format usually: accounts.created, payments.completed, etc.
     const eventType = event.type || "";
-    if (eventType === "accounts.created") {
-      // Process account creation update
-    } else if (eventType === "payments.completed") {
-      // Process payment completion
+    // Handle deposit transaction completion
+    if (eventType === "transaction.created" || eventType === "transaction.updated" || event.data?.type === "transaction") {
+      const txData = event.data;
+      if (txData && txData.attributes.direction === "Credit" && txData.attributes.status === "Completed") {
+        const customerId = txData.relationships?.customer?.data?.id;
+        const amount = txData.attributes.amount / 100; // Cents to USD
+        const reference = txData.id;
+
+        if (customerId) {
+          const { data: existingTx } = await supabaseAdmin
+            .from("transactions")
+            .select("id")
+            .eq("reference", reference)
+            .maybeSingle();
+
+          if (!existingTx) {
+            const { data: profile } = await supabaseAdmin
+              .from("profiles")
+              .select("id")
+              .eq("unit_customer_id", customerId)
+              .maybeSingle();
+
+            if (profile) {
+              const userId = profile.id;
+              const { data: wallet } = await supabaseAdmin
+                .from("fiat_wallets")
+                .select("id, balance")
+                .eq("user_id", userId)
+                .eq("currency", "USD")
+                .maybeSingle();
+
+              if (wallet) {
+                const nextBalance = Number(wallet.balance) + amount;
+                await supabaseAdmin
+                  .from("fiat_wallets")
+                  .update({ balance: nextBalance, available_balance: nextBalance })
+                  .eq("id", wallet.id);
+
+                await supabaseAdmin.from("transactions").insert({
+                  user_id: userId,
+                  type: "deposit",
+                  amount: amount,
+                  currency: "USD",
+                  status: "completed",
+                  description: txData.attributes.description || "Incoming Unit ACH Credit",
+                  reference: reference,
+                });
+
+                logger.info(`Unit Webhook: Credited ${amount} USD to user ${userId}`);
+              }
+            }
+          }
+        }
+      }
     }
 
     return res.status(200).json({ received: true });
@@ -49,6 +98,63 @@ export async function handleCurrencycloudWebhook(req: Request, res: Response) {
       processed_at: new Date().toISOString(),
     });
 
+    const eventType = event.event || "";
+    if (eventType === "transaction_completed" || eventType === "transaction_created") {
+      const txData = event.data;
+      if (txData && txData.action === "credit") {
+        const ccAccountId = txData.account_id;
+        const amount = parseFloat(txData.amount);
+        const currency = txData.currency;
+        const reference = txData.transaction_id;
+
+        if (ccAccountId) {
+          const { data: existingTx } = await supabaseAdmin
+            .from("transactions")
+            .select("id")
+            .eq("reference", reference)
+            .maybeSingle();
+
+          if (!existingTx) {
+            const { data: profile } = await supabaseAdmin
+              .from("profiles")
+              .select("id")
+              .eq("currencycloud_account_id", ccAccountId)
+              .maybeSingle();
+
+            if (profile) {
+              const userId = profile.id;
+              const { data: wallet } = await supabaseAdmin
+                .from("fiat_wallets")
+                .select("id, balance")
+                .eq("user_id", userId)
+                .eq("currency", currency.toUpperCase())
+                .maybeSingle();
+
+              if (wallet) {
+                const nextBalance = Number(wallet.balance) + amount;
+                await supabaseAdmin
+                  .from("fiat_wallets")
+                  .update({ balance: nextBalance, available_balance: nextBalance })
+                  .eq("id", wallet.id);
+
+                await supabaseAdmin.from("transactions").insert({
+                  user_id: userId,
+                  type: "deposit",
+                  amount: amount,
+                  currency: currency.toUpperCase(),
+                  status: "completed",
+                  description: `Incoming Currencycloud ${currency} credit`,
+                  reference: reference,
+                });
+
+                logger.info(`Currencycloud Webhook: Credited ${amount} ${currency} to user ${userId}`);
+              }
+            }
+          }
+        }
+      }
+    }
+
     return res.status(200).json({ received: true });
   } catch (err: any) {
     logger.error(`Currencycloud webhook processing failed: ${err.message}`);
@@ -68,6 +174,48 @@ export async function handleCryptoWebhook(req: Request, res: Response) {
       status: "processed",
       processed_at: new Date().toISOString(),
     });
+
+    const address = event.address;
+    const amount = parseFloat(event.amount || "0");
+    const asset = event.asset || event.currency;
+    const txId = event.txId || event.hash;
+    const type = event.type;
+
+    if (address && amount > 0 && type === "incoming") {
+      const { data: existingTx } = await supabaseAdmin
+        .from("transactions")
+        .select("id")
+        .eq("reference", txId)
+        .maybeSingle();
+
+      if (!existingTx) {
+        const { data: wallet } = await supabaseAdmin
+          .from("crypto_wallets")
+          .select("id, user_id, balance")
+          .eq("deposit_address", address)
+          .maybeSingle();
+
+        if (wallet) {
+          const nextBalance = Number(wallet.balance) + amount;
+          await supabaseAdmin
+            .from("crypto_wallets")
+            .update({ balance: nextBalance })
+            .eq("id", wallet.id);
+
+          await supabaseAdmin.from("transactions").insert({
+            user_id: wallet.user_id,
+            type: "deposit",
+            amount: amount,
+            currency: asset.toUpperCase(),
+            status: "completed",
+            description: `${asset.toUpperCase()} on-chain deposit detected`,
+            reference: txId,
+          });
+
+          logger.info(`Crypto Webhook: Credited ${amount} ${asset} to user ${wallet.user_id}`);
+        }
+      }
+    }
 
     return res.status(200).json({ received: true });
   } catch (err: any) {
@@ -154,133 +302,7 @@ export async function handleSumsubWebhook(req: Request, res: Response) {
           .eq("user_id", userId);
 
         if (isApproved && kycDetails) {
-          logger.info(`KYC Approved for user ${userId}. Automatically provisioning accounts and wallets...`);
-
-          // 1. Create Unit customer + virtual checking account
-          let unitCustomerId = `cust_${Math.random().toString(36).substring(2, 10)}`;
-          let bankDetails = {
-            accountNumber: String(Math.floor(1e11 + Math.random() * 8e11)),
-            routingNumber: "084009519",
-            bankName: "Unit Deposit Bank",
-            bankAddress: "8 Bridge St, New York, NY",
-          };
-
-          try {
-            const unitCust = await new UnitAdapter().createCustomer({
-              first_name: kycDetails.first_name,
-              last_name: kycDetails.last_name,
-              email: userEmail,
-              phone: userPhone,
-              date_of_birth: kycDetails.date_of_birth,
-              address: {
-                street: kycDetails.address_line1,
-                city: kycDetails.city,
-                state: kycDetails.state || "",
-                postal_code: kycDetails.postal_code,
-                country: kycDetails.country,
-              }
-            });
-            unitCustomerId = unitCust.id;
-
-            const unitBank = await new UnitAdapter().createVirtualAccount(unitCustomerId, "USD");
-            bankDetails = {
-              accountNumber: unitBank.accountNumber,
-              routingNumber: unitBank.routingNumber || "084009519",
-              bankName: unitBank.bankName,
-              bankAddress: unitBank.bankAddress,
-            };
-          } catch (err: any) {
-            logger.warn(`Unit provisioning failed, using sandbox mock details: ${err.message}`);
-          }
-
-          // 2. Create Currencycloud sub-account
-          let currencycloudAccountId = `cc_acc_${Math.random().toString(36).substring(2, 10)}`;
-          try {
-            const ccCust = await new CurrencycloudAdapter().createCustomer({
-              first_name: kycDetails.first_name,
-              last_name: kycDetails.last_name,
-              email: userEmail,
-            });
-            currencycloudAccountId = ccCust.id;
-          } catch (err: any) {
-            logger.warn(`Currencycloud provisioning failed, using sandbox mock details: ${err.message}`);
-          }
-
-          // 3. Create fiat wallets (USD, EUR)
-          await supabaseAdmin.from("fiat_wallets").upsert([
-            { user_id: userId, currency: "USD", label: "USD wallet", balance: 0, available_balance: 0, is_active: true },
-            { user_id: userId, currency: "EUR", label: "EUR wallet", balance: 0, available_balance: 0, is_active: true },
-          ], { onConflict: "user_id,currency" });
-
-          // 4. Generate BTC, ETH, USDT wallet addresses using Tatum
-          let btcAddress = `bc1q${crypto.randomBytes(16).toString("hex")}`;
-          let ethAddress = `0x${crypto.randomBytes(20).toString("hex")}`;
-          let usdtAddress = `T${crypto.randomBytes(17).toString("hex")}`;
-
-          try {
-            const tatum = new TatumAdapter();
-            const [btcW, ethW, usdtW] = await Promise.all([
-              tatum.createWallet("BTC", "BTC Wallet"),
-              tatum.createWallet("ETH", "ETH Wallet"),
-              tatum.createWallet("USDT", "USDT Wallet"),
-            ]);
-            btcAddress = btcW.id;
-            ethAddress = ethW.id;
-            usdtAddress = usdtW.id;
-          } catch (err: any) {
-            logger.warn(`Tatum address generation failed, using sandbox mock details: ${err.message}`);
-          }
-
-          // Insert into crypto_wallets table
-          const cryptoWalletRows = [
-            { user_id: userId, asset: "BTC", network: "Bitcoin", label: "BTC Wallet", deposit_address: btcAddress, balance: 0, is_active: true },
-            { user_id: userId, asset: "ETH", network: "Ethereum", label: "ETH Wallet", deposit_address: ethAddress, balance: 0, is_active: true },
-            { user_id: userId, asset: "USDT", network: "TRC-20", label: "USDT Wallet", deposit_address: usdtAddress, balance: 0, is_active: true },
-          ];
-
-          const { data: insertedWallets } = await supabaseAdmin
-            .from("crypto_wallets")
-            .upsert(cryptoWalletRows, { onConflict: "user_id,asset" })
-            .select("id");
-
-          const cryptoWalletIds = insertedWallets ? insertedWallets.map(w => w.id) : [];
-
-          // Create USD virtual account in virtual_accounts table
-          await supabaseAdmin.from("virtual_accounts").insert({
-            user_id: userId,
-            currency: "USD",
-            account_name: "Nexus Pay Collection Account",
-            account_number: bankDetails.accountNumber,
-            routing_number: bankDetails.routingNumber,
-            bank_name: bankDetails.bankName,
-            bank_address: bankDetails.bankAddress,
-            status: "active",
-          });
-
-          // Save unit_customer_id, currencycloud_account_id, crypto_wallet_ids to profiles
-          await supabaseAdmin
-            .from("profiles")
-            .update({
-              unit_customer_id: unitCustomerId,
-              currencycloud_account_id: currencycloudAccountId,
-              crypto_wallet_ids: cryptoWalletIds,
-            })
-            .eq("id", userId);
-
-          // 5. Send notifications for approval
-          const notifier = NotificationService.getProvider();
-          await notifier.sendEmail(
-            userEmail,
-            "KYC Verification Approved",
-            `<p>Hi ${kycDetails.first_name},</p><p>Congratulations! Your identity verification has been approved. Your wallets, accounts, and payouts are now fully unlocked.</p>`
-          );
-
-          if (userPhone) {
-            await notifier.sendSMS(
-              userPhone,
-              "Nexus Pay: Your identity verification has been approved. Your account is now fully unlocked!"
-            );
-          }
+          await ProvisioningService.provisionUser(userId, kycDetails, userEmail, userPhone);
         } else if (status === "rejected" && kycDetails) {
           // Send notification for rejection
           const notifier = NotificationService.getProvider();
