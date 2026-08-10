@@ -44,31 +44,32 @@ export function formatDate(value: string) {
   });
 }
 
-/** Indicative reference rates used for conversion previews until a live FX provider is wired in. */
+/** Fallback static rates — used when live fetch fails. */
 export const REFERENCE_RATES: Record<string, number> = {
   USD: 1.0,
-  EUR: 1.08,    // 1 EUR = 1.08 USD
-  GBP: 1.27,    // 1 GBP = 1.27 USD
-  BTC: 60000.0, // 1 BTC = 60,000 USD
-  ETH: 3000.0,  // 1 ETH = 3,000 USD
-  USDT: 1.0,    // 1 USDT = 1.0 USD
+  EUR: 1.08,
+  GBP: 1.27,
+  BTC: 60000.0,
+  ETH: 3000.0,
+  USDT: 1.0,
 };
 
-export function toUsd(amount: number, currency: string) {
+export function toUsd(amount: number, currency: string, liveRates?: Record<string, number>) {
   const upper = currency.toUpperCase();
-  const rate = REFERENCE_RATES[upper] || 1;
+  const rates = liveRates ?? REFERENCE_RATES;
+  const rate = rates[upper] ?? REFERENCE_RATES[upper] ?? 1;
   return amount * rate;
 }
 
-export function convert(amount: number, from: string, to: string) {
+export function convert(amount: number, from: string, to: string, liveRates?: Record<string, number>) {
   const fromUpper = from.toUpperCase();
   const toUpper = to.toUpperCase();
-  const fromRate = REFERENCE_RATES[fromUpper] || 1;
-  const toRate = REFERENCE_RATES[toUpper] || 1;
-  const usdVal = amount * fromRate;
-  return usdVal / toRate;
+  const rates = liveRates ?? REFERENCE_RATES;
+  const fromRate = rates[fromUpper] ?? REFERENCE_RATES[fromUpper] ?? 1;
+  const toRate = rates[toUpper] ?? REFERENCE_RATES[toUpper] ?? 1;
+  return (amount * fromRate) / toRate;
 }
 
-export function rateBetween(from: string, to: string) {
-  return convert(1, from, to);
+export function rateBetween(from: string, to: string, liveRates?: Record<string, number>) {
+  return convert(1, from, to, liveRates);
 }
