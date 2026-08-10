@@ -38,44 +38,91 @@ export function CurrencyIcon({ code }: { code: string }) {
   const upper = code.toUpperCase();
   if (upper === "USD") {
     return (
-      <span className="flex size-9 items-center justify-center rounded-lg bg-blue-500/10 text-lg border border-blue-500/20 shadow-sm" title="US Dollar">
-        🇺🇸
-      </span>
+      <svg viewBox="0 0 36 36" className="size-9 rounded-lg border border-blue-500/20 shadow-sm" title="US Dollar">
+        <rect width="36" height="36" fill="#bf0a30"/>
+        <rect width="36" height="2.7" y="2.7" fill="#fff"/>
+        <rect width="36" height="2.7" y="8.1" fill="#fff"/>
+        <rect width="36" height="2.7" y="13.5" fill="#fff"/>
+        <rect width="36" height="2.7" y="18.9" fill="#fff"/>
+        <rect width="36" height="2.7" y="24.3" fill="#fff"/>
+        <rect width="36" height="2.7" y="29.7" fill="#fff"/>
+        <rect width="18" height="19.3" fill="#002868"/>
+        <g fill="#fff">
+          <circle cx="3" cy="3" r="0.6"/>
+          <circle cx="9" cy="3" r="0.6"/>
+          <circle cx="15" cy="3" r="0.6"/>
+          <circle cx="6" cy="6.5" r="0.6"/>
+          <circle cx="12" cy="6.5" r="0.6"/>
+          <circle cx="3" cy="10" r="0.6"/>
+          <circle cx="9" cy="10" r="0.6"/>
+          <circle cx="15" cy="10" r="0.6"/>
+          <circle cx="6" cy="13.5" r="0.6"/>
+          <circle cx="12" cy="13.5" r="0.6"/>
+          <circle cx="3" cy="17" r="0.6"/>
+          <circle cx="9" cy="17" r="0.6"/>
+          <circle cx="15" cy="17" r="0.6"/>
+        </g>
+      </svg>
     );
   }
   if (upper === "EUR") {
     return (
-      <span className="flex size-9 items-center justify-center rounded-lg bg-indigo-500/10 text-lg border border-indigo-500/20 shadow-sm" title="Euro">
-        🇪🇺
-      </span>
+      <svg viewBox="0 0 36 36" className="size-9 rounded-lg border border-indigo-500/20 shadow-sm" title="Euro">
+        <rect width="36" height="36" fill="#003399"/>
+        <g fill="#ffcc00">
+          <circle cx="18" cy="7" r="1.1"/>
+          <circle cx="18" cy="29" r="1.1"/>
+          <circle cx="7" cy="18" r="1.1"/>
+          <circle cx="29" cy="18" r="1.1"/>
+          <circle cx="12.5" cy="9" r="1.1"/>
+          <circle cx="23.5" cy="9" r="1.1"/>
+          <circle cx="12.5" cy="27" r="1.1"/>
+          <circle cx="23.5" cy="27" r="1.1"/>
+          <circle cx="8" cy="13" r="1.1"/>
+          <circle cx="28" cy="13" r="1.1"/>
+          <circle cx="8" cy="23" r="1.1"/>
+          <circle cx="28" cy="23" r="1.1"/>
+        </g>
+      </svg>
     );
   }
   if (upper === "GBP") {
     return (
-      <span className="flex size-9 items-center justify-center rounded-lg bg-red-500/10 text-lg border border-red-500/20 shadow-sm" title="British Pound">
-        🇬🇧
-      </span>
+      <svg viewBox="0 0 36 36" className="size-9 rounded-lg border border-red-500/20 shadow-sm" title="British Pound">
+        <rect width="36" height="36" fill="#012169"/>
+        <path d="M-5,-5 L41,41 M41,-5 L-5,41" stroke="#fff" strokeWidth="4.5"/>
+        <path d="M-5,-5 L41,41 M41,-5 L-5,41" stroke="#C8102E" strokeWidth="2.2"/>
+        <path d="M18,-5 L18,41 M-5,18 L41,18" stroke="#fff" strokeWidth="7.5"/>
+        <path d="M18,-5 L18,41 M-5,18 L41,18" stroke="#C8102E" strokeWidth="4.5"/>
+      </svg>
     );
   }
   if (upper === "BTC") {
     return (
-      <span className="flex size-9 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500 font-bold text-sm border border-amber-500/20 shadow-sm" title="Bitcoin">
-        ₿
-      </span>
+      <svg viewBox="0 0 32 32" className="size-9 rounded-lg border border-amber-500/20 shadow-sm" title="Bitcoin">
+        <circle cx="16" cy="16" r="16" fill="#F7931A"/>
+        <path d="M19 13.7c.3-1.8-.7-2.8-2.6-3.4l.5-2.1h-1.3l-.5 2c-.3 0-.7.1-1 .2l.5-2h-1.3l-.5 2.1c-.3 0-.7 0-1-.1L11.3 9l-.8 3.2s1 .2 1 .2c.5.1.8.4.7.9l-.7 2.9c.1 0 .2.1.2.1l-.2-.1-.8 3.3c0 .3-.3.6-.8.5 0 0-1-.2-1-.2l-1.3 2.9 2 .5c.4.1.8.2 1.1.2l-.5 2.1h1.3l.5-2c.4.1.7.1 1.1.1l-.5 2h1.3l.5-2c2.2.4 3.9.2 4.6-1.7.6-1.5.1-2.4-.9-2.9 1-.3 1.7-1.1 1.5-2.6zm-2.7 5.7c-.4 1.6-3.2.8-4.1.6l.7-2.9c.9.2 3.8.6 3.4 2.3zm.4-5.8c-.4 1.5-2.7.7-3.5.5l.7-2.7c.8.2 3.2.5 2.8 2.2z" fill="#FFF"/>
+      </svg>
     );
   }
   if (upper === "ETH") {
     return (
-      <span className="flex size-9 items-center justify-center rounded-lg bg-purple-500/10 text-purple-500 font-bold text-sm border border-purple-500/20 shadow-sm" title="Ethereum">
-        Ξ
-      </span>
+      <svg viewBox="0 0 32 32" className="size-9 rounded-lg border border-purple-500/20 shadow-sm" title="Ethereum">
+        <circle cx="16" cy="16" r="16" fill="#627EEA"/>
+        <path d="M16 4.5l6.5 10.7-6.5 3-6.5-3z" fill="#FFF" fillOpacity="0.8"/>
+        <path d="M16 4.5v10.7l6.5-3z" fill="#FFF" fillOpacity="0.5"/>
+        <path d="M16 19.3l6.5-3.8-6.5 9-6.5-9z" fill="#FFF" fillOpacity="0.8"/>
+        <path d="M16 19.3V24.5l6.5-9z" fill="#FFF" fillOpacity="0.5"/>
+        <path d="M16 15.2l6.5-3-6.5-3-6.5 3z" fill="#FFF" fillOpacity="0.6"/>
+      </svg>
     );
   }
   if (upper === "USDT") {
     return (
-      <span className="flex size-9 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-500 font-bold text-xs border border-emerald-500/20 shadow-sm" title="Tether">
-        ₮
-      </span>
+      <svg viewBox="0 0 32 32" className="size-9 rounded-lg border border-emerald-500/20 shadow-sm" title="Tether">
+        <circle cx="16" cy="16" r="16" fill="#26A17B"/>
+        <path d="M17.9 13.9v-2.8h4.5v-2.3H9.6v2.3h4.5v2.8c-3.1.2-5.4.8-5.4 1.6s2.3 1.4 5.4 1.6v6.2h3.8v-6.2c3.1-.2 5.4-.8 5.4-1.6s-2.3-1.4-5.4-1.6zm0 1.2c-.1 0-1 .1-1.9.1s-1.8 0-1.9-.1c-2.4-.1-4.2-.5-4.2-1s1.8-.9 4.2-1c.1 0 1-.1 1.9-.1s1.8 0 1.9.1c2.4.1 4.2.5 4.2 1s-1.8.9-4.2 1z" fill="#FFF"/>
+      </svg>
     );
   }
   return (
