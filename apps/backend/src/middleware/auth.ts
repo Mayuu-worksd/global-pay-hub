@@ -23,6 +23,7 @@ export async function requireAuth(req: AuthenticatedRequest, res: Response, next
     const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
 
     if (error || !user) {
+      console.error("[AuthMiddleware] getUser failed. Error:", error, "Token prefix:", token ? token.substring(0, 15) : "none");
       return res.status(401).json({ error: "Unauthorized. Invalid authentication token." });
     }
 
