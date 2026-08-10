@@ -18,8 +18,9 @@ import {
   useKyc,
   useProfile,
   useTransactions,
+  useExchangeRates,
 } from "@/hooks/use-account";
-import { REFERENCE_RATES, formatAmount, formatFiat, toUsd } from "@/lib/format";
+import { REFERENCE_RATES, formatAmount, formatFiat, toUsd, rateBetween } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -98,8 +99,11 @@ function DashboardPage() {
   const { data: crypto = [] } = useCryptoWallets();
   const { data: transactions = [], isLoading: txLoading } = useTransactions();
 
-  const fiatUsd = fiat.reduce((sum, w) => sum + toUsd(Number(w.balance), w.currency), 0);
-  const cryptoUsd = crypto.reduce((sum, w) => sum + toUsd(Number(w.balance), w.asset), 0);
+  const { data: liveRates } = useExchangeRates();
+  const rates = liveRates ?? REFERENCE_RATES;
+
+  const fiatUsd = fiat.reduce((sum, w) => sum + toUsd(Number(w.balance), w.currency, rates), 0);
+  const cryptoUsd = crypto.reduce((sum, w) => sum + toUsd(Number(w.balance), w.asset, rates), 0);
   const kycStatus = (kyc as { status?: string } | null | undefined)?.status ?? "not_started";
 
   const isKycApproved = kycStatus === "approved";
@@ -246,11 +250,28 @@ function DashboardPage() {
           </div>
 
           <div className="rounded-2xl border border-border bg-card p-6">
-            <h2 className="font-display text-lg font-bold text-foreground">Reference rates</h2>
-            <div className="mt-4 rounded-xl border border-dashed border-border p-8 text-center">
-               <p className="text-sm text-muted-foreground font-semibold">NOT READY</p>
-               <p className="mt-2 text-xs text-muted-foreground">Live pricing arrives with the FX provider integration.</p>
+            <div className="flex items-center justify-between">
+              <h2 className="font-display text-lg font-bold text-foreground">Reference rates</h2>
+              {liveRates ? (
+                <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 rounded-full px-2 py-0.5">LIVE</span>
+              ) : (
+                <span className="text-[10px] font-semibold text-amber-400 bg-amber-400/10 border border-amber-400/20 rounded-full px-2 py-0.5">LOADING…</span>
+              )}
             </div>
+            <ul className="mt-4 divide-y divide-border">
+              {(["EUR", "GBP", "BTC", "ETH", "USDT"] as const).map((code) => (
+                <li key={code} className="flex items-center justify-between py-2.5">
+                  <span className="flex items-center gap-2">
+                    <CurrencyIcon code={code} />
+                    <span className="text-sm font-medium text-foreground">{code} / USD</span>
+                  </span>
+                  <span className="text-sm font-semibold text-foreground">
+                    {formatFiat(rateBetween(code, "USD", rates))}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-3 text-[10px] text-muted-foreground">Powered by CoinGecko &amp; Frankfurter · updates every 60s</p>
           </div>
         </div>
       </section>
