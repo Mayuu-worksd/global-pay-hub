@@ -38,7 +38,8 @@ export class SumsubAdapter implements IKYCProvider {
       throw new Error("Sumsub API credentials not configured.");
     }
 
-    const path = "/resources/applicants?levelName=basic-kyc-level";
+    const levelName = process.env.SUMSUB_LEVEL_NAME || "id-only";
+    const path = `/resources/applicants?levelName=${levelName}`;
     const body = {
       externalUserId: userId,
       email: email,
@@ -76,31 +77,41 @@ export class SumsubAdapter implements IKYCProvider {
     }
 
     const path = `/resources/applicants/${applicantId}/info/idDoc`;
-    const ts = Math.floor(Date.now() / 1000);
+    const ts = Math.floor(Date.now() / 1000).toString();
     
-    // Sign: ts + POST + path for multipart request
+    // Construct manual multipart payload with fixed boundary to enable exact body signature hashing
+    const boundary = "----CustomBoundary" + crypto.randomBytes(8).toString("hex");
+    const metadataStr = JSON.stringify({ idDocType: documentType.toUpperCase(), country: "USA" });
+
+    const header1 = `--${boundary}\r\nContent-Disposition: form-data; name="metadata"\r\nContent-Type: application/json\r\n\r\n${metadataStr}\r\n`;
+    const header2 = `--${boundary}\r\nContent-Disposition: form-data; name="content"; filename="${filename}"\r\nContent-Type: ${mimeType}\r\n\r\n`;
+    const footer = `\r\n--${boundary}--\r\n`;
+
+    const bodyBuffer = Buffer.concat([
+      Buffer.from(header1, "utf-8"),
+      Buffer.from(header2, "utf-8"),
+      documentImage,
+      Buffer.from(footer, "utf-8")
+    ]);
+
+    // Sign: ts + POST + path + bodyBuffer
     const signature = crypto
       .createHmac("sha256", this.secretKey)
       .update(ts + "POST" + path)
+      .update(bodyBuffer)
       .digest("hex");
-
-    // Use native undici Blob/FormData to construct multipart upload
-    const form = new FormData();
-    const blob = new Blob([new Uint8Array(documentImage)], { type: mimeType });
-    form.append("metadata", JSON.stringify({ idDocType: documentType.toUpperCase(), country: "USA" }));
-    form.append("content", blob, filename);
 
     const headers: Record<string, string> = {
       "X-App-Token": this.apiKey,
-      "X-App-Access-Ts": String(ts),
+      "X-App-Access-Ts": ts,
       "X-App-Access-Sig": signature,
+      "Content-Type": `multipart/form-data; boundary=${boundary}`,
     };
 
-    // Use fetch because native FormData integrates seamlessly with it
     const res = await fetch(`${this.baseUrl}${path}`, {
       method: "POST",
       headers,
-      body: form,
+      body: bodyBuffer,
     });
 
     if (!res.ok) {
