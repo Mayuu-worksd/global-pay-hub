@@ -2,7 +2,13 @@ import { logger } from "../../utils/logger";
 import { supabaseAdmin } from "../../config/database";
 import { TatumAdapter } from "../../providers/crypto/tatum/TatumAdapter";
 
-const tatum = new TatumAdapter();
+let _tatum: TatumAdapter | null = null;
+function getTatum(): TatumAdapter {
+  if (!_tatum) {
+    _tatum = new TatumAdapter();
+  }
+  return _tatum;
+}
 
 export async function startDepositMonitor() {
   logger.info("Initializing Blockchain Deposit Monitor...");
@@ -37,7 +43,7 @@ async function runMonitor() {
 
     for (const wallet of wallets || []) {
       try {
-        const onChainBalance = await tatum.getAddressBalance(wallet.asset, wallet.deposit_address);
+        const onChainBalance = await getTatum().getAddressBalance(wallet.asset, wallet.deposit_address);
         const currentBalance = parseFloat(wallet.balance || "0");
 
         if (onChainBalance > currentBalance) {
