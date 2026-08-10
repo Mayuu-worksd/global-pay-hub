@@ -275,7 +275,7 @@ function FileUploader({
       formData.append("file", file);
       formData.append("document_type", documentType);
 
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
+      const backendUrl = import.meta.env['VITE_BACKEND_URL'] || "https://backend-jdlg-production.up.railway.app";
       const res = await fetch(`${backendUrl}/api/kyc/upload`, {
         method: "POST",
         headers: {

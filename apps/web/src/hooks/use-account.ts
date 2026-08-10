@@ -55,7 +55,7 @@ export function useKyc() {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-          const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
+          const backendUrl = import.meta.env['VITE_BACKEND_URL'] || "https://backend-jdlg-production.up.railway.app";
           const res = await fetch(`${backendUrl}/api/kyc/status/${userId}`, {
             headers: {
               "Authorization": `Bearer ${session.access_token}`,
@@ -86,7 +86,7 @@ export function useSubmitKyc() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Not authenticated");
 
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
+      const backendUrl = import.meta.env['VITE_BACKEND_URL'] || "https://backend-jdlg-production.up.railway.app";
       const res = await fetch(`${backendUrl}/api/kyc/start`, {
         method: "POST",
         headers: {
@@ -178,7 +178,7 @@ export function useCreateWallet() {
         if (!session) throw new Error("Not authenticated");
         
         // Call backend to generate real Tatum address
-        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL || "http://localhost:4000"}/api/crypto/address`, {
+        const res = await fetch(`${import.meta.env['VITE_BACKEND_URL'] || "https://backend-jdlg-production.up.railway.app"}/api/crypto/address`, {
           method: "POST",
           headers: { 
             "Content-Type": "application/json",
