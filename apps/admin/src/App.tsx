@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase, supabaseAdmin } from "./supabase";
+import { supabase } from "./supabase";
 import { 
   Users as UsersIcon, 
   ShieldAlert, 
@@ -149,6 +149,28 @@ export default function App() {
   const [tickets] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
 
+  async function callBackend(method: "GET" | "POST", path: string, body?: any) {
+    const token = session?.access_token;
+    if (!token) throw new Error("No active authentication session");
+
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
+    const res = await fetch(`${backendUrl}${path}`, {
+      method,
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({ error: res.statusText }));
+      throw new Error(errorData.error || `HTTP error ${res.status}`);
+    }
+
+    return await res.json();
+  }
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -196,32 +218,14 @@ export default function App() {
 
   async function loadAdminData() {
     setLoadingData(true);
-    let loadedProfiles: UserProfile[] = [];
-
-    // 1. Fetch user profiles
     try {
-      const { data: profileData, error: profileError } = await supabaseAdmin
-        .from("profiles")
-        .select("id, email, full_name, role, verification_status, created_at")
-        .order("created_at", { ascending: false });
-      if (profileError) console.error("[Admin] profiles error:", profileError);
-      if (profileData) {
-        loadedProfiles = profileData;
-        setProfiles(profileData);
-      }
-      console.log("[Admin] profiles loaded:", profileData?.length ?? 0);
-    } catch (err) {
-      console.error("[Admin] Failed to load profiles:", err);
-    }
+      const data = await callBackend("GET", "/api/admin/data");
 
-    // 2. Fetch merchants (users who chose merchant role)
-    try {
-      const { data: merchantData } = await supabaseAdmin
-        .from("profiles")
-        .select("*")
-        .eq("role", "merchant")
-        .order("created_at", { ascending: false });
-      if (merchantData) setMerchants(merchantData.map((m: any) => ({
+      const loadedProfiles = data.profiles || [];
+      setProfiles(loadedProfiles);
+
+      // 2. Fetch merchants
+      setMerchants(loadedProfiles.filter((m: any) => m.role === "merchant").map((m: any) => ({
         id: m.id,
         merchant_id: m.id,
         legal_name: m.full_name || m.email,
@@ -236,17 +240,10 @@ export default function App() {
         currencycloud_account_id: m.currencycloud_account_id || null,
         created_at: m.created_at,
       })));
-    } catch (err) {
-      console.warn("Failed to load merchants:", err);
-    }
 
-    // 3. Fetch KYC records (web app writes to 'kyc' table)
-    try {
-      const { data: kycData } = await supabaseAdmin
-        .from("kyc")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (kycData) setKycs(kycData.map((k: any) => ({
+      // 3. Fetch KYC records
+      const kycRecords = data.kycs || [];
+      setKycs(kycRecords.map((k: any) => ({
         id: k.id,
         profile_id: k.user_id,
         sumsub_applicant_id: null,
@@ -255,18 +252,9 @@ export default function App() {
         payload: k,
         submitted_at: k.submitted_at || k.created_at,
       })));
-    } catch (err) {
-      console.warn("Failed to load kyc:", err);
-    }
 
-    // 4. KYB - merchants who selected merchant role (no separate kyb table yet)
-    try {
-      const { data: kybData } = await supabaseAdmin
-        .from("kyc")
-        .select("*")
-        .eq("is_business", true)
-        .order("created_at", { ascending: false });
-      if (kybData) setKybs(kybData.map((k: any) => ({
+      // 4. KYB
+      setKybs(kycRecords.filter((k: any) => k.is_business === true).map((k: any) => ({
         id: k.id,
         business_profile_id: k.user_id,
         sumsub_applicant_id: null,
@@ -275,60 +263,27 @@ export default function App() {
         payload: k,
         submitted_at: k.submitted_at || k.created_at,
       })));
-    } catch (err) {
-      console.warn("Failed to load kyb:", err);
-    }
 
-    // 5. Fetch Fiat Wallets
-    try {
-      const { data: fiatData } = await supabaseAdmin.from("fiat_wallets").select("*");
-      if (fiatData) setFiatWallets(fiatData);
-    } catch (err) {
-      console.warn("Failed to load fiat_wallets:", err);
-    }
+      // 5. Fetch Fiat Wallets
+      setFiatWallets(data.fiatWallets || []);
 
-    // 5b. Fetch Crypto Wallets
-    try {
-      const { data: cryptoData } = await supabaseAdmin.from("crypto_wallets").select("*");
-      if (cryptoData) setCryptoWallets(cryptoData);
-    } catch (err) {
-      console.warn("Failed to load crypto_wallets:", err);
-    }
+      // 5b. Fetch Crypto Wallets
+      setCryptoWallets(data.cryptoWallets || []);
 
-    // 6. Fetch Transactions
-    try {
-      const { data: txData } = await supabaseAdmin
-        .from("transactions")
-        .select("*")
-        .order("created_at", { ascending: false });
+      // 6. Fetch Transactions
+      const txData = data.transactions || [];
+      const mappedTransactions = txData.map((t: any) => {
+        const match = loadedProfiles.find((p: any) => p.id === t.user_id);
+        return { ...t, user_email: match ? match.email : "Unknown User" };
+      });
+      setTransactions(mappedTransactions);
 
-      if (txData) {
-        const mappedTransactions = txData.map((t: any) => {
-          const match = loadedProfiles.find((p: any) => p.id === t.user_id);
-          return { ...t, user_email: match ? match.email : "Unknown User" };
-        });
-        setTransactions(mappedTransactions);
-      }
-    } catch (err) {
-      console.warn("Failed to load transactions:", err);
-    }
+      // 7. Fetch API Keys
+      setApiKeys(data.merchantApiKeys || []);
 
-    // 7. Fetch API Keys
-    try {
-      const { data: keysData } = await supabaseAdmin.from("merchant_api_keys").select("*");
-      if (keysData) setApiKeys(keysData);
-    } catch (err) {
-      console.warn("Failed to load merchant_api_keys:", err);
-    }
-
-    // 8. Fetch Webhook Events (web app uses 'webhooks' table)
-    try {
-      const { data: webEvents } = await supabaseAdmin
-        .from("webhooks")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(100);
-      if (webEvents) setWebhooks(webEvents.map((w: any) => ({
+      // 8. Fetch Webhook Events
+      const webEvents = data.webhooks || [];
+      setWebhooks(webEvents.map((w: any) => ({
         id: w.id,
         merchant_id: "",
         event_type: w.event_type,
@@ -338,60 +293,30 @@ export default function App() {
         attempts: 1,
         created_at: w.created_at,
       })));
-    } catch (err) {
-      console.warn("Failed to load webhooks:", err);
-    }
 
-    // 9. Fetch Audit Logs
-    try {
-      const { data: logsData } = await supabaseAdmin
-        .from("audit_logs")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(100);
-      if (logsData) {
-        setAuditLogs(logsData.map((l: any) => ({
-          id: l.id,
-          admin: l.details?.admin_email || "System",
-          action: l.action,
-          target: l.details?.target || l.entity_id || "System",
-          timestamp: l.created_at
-        })));
-      }
-    } catch (err) {
-      console.warn("Failed to load audit logs:", err);
+      // 9. Fetch Audit Logs
+      const logsData = data.auditLogs || [];
+      setAuditLogs(logsData.map((l: any) => ({
+        id: l.id,
+        admin: l.details?.admin_email || "System",
+        action: l.action,
+        target: l.details?.target || l.entity_id || "System",
+        timestamp: l.created_at,
+      })));
+      
+      console.log("[Admin] All secure data loaded successfully!");
+    } catch (err: any) {
+      console.error("[Admin] Failed to load data from proxy:", err);
+    } finally {
+      setLoadingData(false);
     }
-
-    setLoadingData(false);
   }
 
   // SUSPEND / REACTIVATE USER
   async function toggleUserSuspension(userId: string, currentStatus: string) {
     try {
-      const targetStatus = currentStatus === "rejected" ? "approved" : "rejected";
-      
-      const { error } = await supabaseAdmin
-        .from("profiles")
-        .update({ verification_status: targetStatus })
-        .eq("id", userId);
-
-      if (error) throw error;
-
-      // Add to persistent audit logs
-      const actionName = targetStatus === "rejected" ? "SUSPEND_USER" : "REACTIVATE_USER";
-      const targetEmail = profiles.find(p => p.id === userId)?.email || userId;
-      await supabaseAdmin.from("audit_logs").insert({
-        user_id: session?.user?.id || null,
-        action: actionName,
-        entity_type: "profile",
-        entity_id: userId,
-        details: {
-          admin_email: session?.user?.email || "System",
-          target: targetEmail
-        }
-      });
-
-      alert(`User status changed to ${targetStatus === "rejected" ? "Suspended" : "Active"}!`);
+      const res = await callBackend("POST", "/api/admin/user/toggle-suspension", { userId, currentStatus });
+      alert(`User status changed to ${res.status === "rejected" ? "Suspended" : "Active"}!`);
       await loadAdminData();
     } catch (err: any) {
       alert("Failed to toggle suspension: " + err.message);
@@ -401,30 +326,8 @@ export default function App() {
   // SUSPEND / REACTIVATE MERCHANT
   async function toggleMerchantSuspension(merchantId: string, currentStatus: string) {
     try {
-      const targetStatus = currentStatus === "rejected" ? "approved" : "rejected";
-      
-      const { error } = await supabaseAdmin
-        .from("business_profiles")
-        .update({ verification_status: targetStatus })
-        .eq("id", merchantId);
-
-      if (error) throw error;
-
-      // Add to persistent audit logs
-      const actionName = targetStatus === "rejected" ? "SUSPEND_MERCHANT" : "REACTIVATE_MERCHANT";
-      const targetName = merchants.find(m => m.id === merchantId)?.legal_name || merchantId;
-      await supabaseAdmin.from("audit_logs").insert({
-        user_id: session?.user?.id || null,
-        action: actionName,
-        entity_type: "business_profile",
-        entity_id: merchantId,
-        details: {
-          admin_email: session?.user?.email || "System",
-          target: targetName
-        }
-      });
-
-      alert(`Merchant status changed to ${targetStatus === "rejected" ? "Suspended" : "Active"}!`);
+      const res = await callBackend("POST", "/api/admin/merchant/toggle-suspension", { merchantId, currentStatus });
+      alert(`Merchant status changed to ${res.status === "rejected" ? "Suspended" : "Active"}!`);
       await loadAdminData();
     } catch (err: any) {
       alert("Failed to toggle merchant suspension: " + err.message);
@@ -434,30 +337,8 @@ export default function App() {
   // FREEZE / UNFREEZE WALLET
   async function toggleWalletFreeze(walletId: string, kind: "fiat" | "crypto", currentActive: boolean) {
     try {
-      const targetState = !currentActive;
-      const table = kind === "fiat" ? "fiat_wallets" : "crypto_wallets";
-
-      const { error } = await supabaseAdmin
-        .from(table)
-        .update({ is_active: targetState })
-        .eq("id", walletId);
-
-      if (error) throw error;
-
-      // Add to persistent audit logs
-      const actionName = targetState ? "UNFREEZE_WALLET" : "FREEZE_WALLET";
-      await supabaseAdmin.from("audit_logs").insert({
-        user_id: session?.user?.id || null,
-        action: actionName,
-        entity_type: table,
-        entity_id: walletId,
-        details: {
-          admin_email: session?.user?.email || "System",
-          target: walletId
-        }
-      });
-
-      alert(`Wallet state updated to ${targetState ? "Active" : "Frozen"}!`);
+      const res = await callBackend("POST", "/api/admin/wallet/toggle-freeze", { walletId, kind, currentActive });
+      alert(`Wallet state updated to ${res.active ? "Active" : "Frozen"}!`);
       await loadAdminData();
     } catch (err: any) {
       alert("Failed to update wallet state: " + err.message);
@@ -467,18 +348,26 @@ export default function App() {
   // SUSPEND / ACTIVATE API KEY
   async function toggleApiKey(keyId: string, currentActive: boolean) {
     try {
-      const targetState = !currentActive;
-      const { error } = await supabaseAdmin
-        .from("merchant_api_keys")
-        .update({ is_active: targetState })
-        .eq("id", keyId);
-
-      if (error) throw error;
-
-      alert(`API Key has been ${targetState ? "Activated" : "Suspended"}!`);
+      const res = await callBackend("POST", "/api/admin/api-key/toggle", { keyId, currentActive });
+      alert(`API Key has been ${res.active ? "Activated" : "Suspended"}!`);
       await loadAdminData();
     } catch (err: any) {
       alert("Failed to toggle API key: " + err.message);
+    }
+  }
+
+  // RETRY WEBHOOK EVENT
+  async function retryWebhook(webhookId: string) {
+    try {
+      const res = await callBackend("POST", "/api/admin/webhook/retry", { webhookId });
+      if (res.success) {
+        alert(`Webhook retried successfully! Provider processed with status code: ${res.responseStatus}`);
+      } else {
+        alert(`Webhook retry processed but failed: ${res.responseData?.error || JSON.stringify(res.responseData)}`);
+      }
+      await loadAdminData();
+    } catch (err: any) {
+      alert("Failed to retry webhook: " + err.message);
     }
   }
 
@@ -1237,6 +1126,12 @@ export default function App() {
                                 className="text-[10px] text-blue-400 font-bold hover:text-blue-300 transition-colors"
                               >
                                 View Payload
+                              </button>
+                              <button
+                                onClick={() => retryWebhook(w.id)}
+                                className="text-[10px] text-emerald-400 font-bold hover:text-emerald-300 transition-colors"
+                              >
+                                Retry Event
                               </button>
                             </div>
                           </div>
