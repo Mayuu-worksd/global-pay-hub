@@ -45,16 +45,30 @@ export function formatDate(value: string) {
 }
 
 /** Indicative reference rates used for conversion previews until a live FX provider is wired in. */
-export const REFERENCE_RATES: Record<string, number> = {};
+export const REFERENCE_RATES: Record<string, number> = {
+  USD: 1.0,
+  EUR: 1.08,    // 1 EUR = 1.08 USD
+  GBP: 1.27,    // 1 GBP = 1.27 USD
+  BTC: 60000.0, // 1 BTC = 60,000 USD
+  ETH: 3000.0,  // 1 ETH = 3,000 USD
+  USDT: 1.0,    // 1 USDT = 1.0 USD
+};
 
 export function toUsd(amount: number, currency: string) {
-  return 0; // NOT READY
+  const upper = currency.toUpperCase();
+  const rate = REFERENCE_RATES[upper] || 1;
+  return amount * rate;
 }
 
 export function convert(amount: number, from: string, to: string) {
-  return 0; // NOT READY
+  const fromUpper = from.toUpperCase();
+  const toUpper = to.toUpperCase();
+  const fromRate = REFERENCE_RATES[fromUpper] || 1;
+  const toRate = REFERENCE_RATES[toUpper] || 1;
+  const usdVal = amount * fromRate;
+  return usdVal / toRate;
 }
 
 export function rateBetween(from: string, to: string) {
-  return 0; // NOT READY
+  return convert(1, from, to);
 }

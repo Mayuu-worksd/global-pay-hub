@@ -105,9 +105,9 @@ function DashboardPage() {
   const isKycApproved = kycStatus === "approved";
 
   const cards = [
-    { label: "Total balance", value: "NOT READY", hint: "Awaiting live FX provider" },
-    { label: "Fiat balance", value: "NOT READY", hint: `${fiat.length} wallets (Awaiting FX)` },
-    { label: "Crypto balance", value: "NOT READY", hint: `${crypto.length} wallets (Awaiting FX)` },
+    { label: "Total balance", value: formatFiat(fiatUsd + cryptoUsd), hint: "Combined portfolio value" },
+    { label: "Fiat balance", value: formatFiat(fiatUsd), hint: `${fiat.length} wallet${fiat.length === 1 ? "" : "s"}` },
+    { label: "Crypto balance", value: formatFiat(cryptoUsd), hint: `${crypto.length} wallet${crypto.length === 1 ? "" : "s"}` },
   ];
 
   return (
