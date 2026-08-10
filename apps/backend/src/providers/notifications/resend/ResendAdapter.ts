@@ -19,8 +19,9 @@ export class ResendAdapter implements INotificationProvider {
     if (!process.env.RESEND_API_KEY) {
       throw new Error("Resend API Key not configured.");
     }
+    const from = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
     const response = await this.client.post("/emails", {
-      from: "GlobalPay <noreply@globalpay.com>",
+      from: from,
       to: [to],
       subject: subject,
       html: body,
