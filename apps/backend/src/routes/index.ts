@@ -6,6 +6,7 @@ import notificationRoutes from "./notifications";
 import webhookRoutes from "./webhooks";
 import merchantRoutes from "./merchant";
 import invoiceRoutes from "./invoice";
+import adminRoutes from "./admin";
 
 const router = Router();
 
@@ -16,5 +17,6 @@ router.use("/api", notificationRoutes);
 router.use("/api/webhooks", webhookRoutes);
 router.use("/merchant", merchantRoutes);
 router.use("/api", invoiceRoutes);
+router.use("/api/admin", adminRoutes);
 
 export default router;
