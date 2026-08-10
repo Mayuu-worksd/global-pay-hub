@@ -1,13 +1,13 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
-import dotenv from "dotenv";
 import path from "path";
 import routes from "./routes";
 import { logger } from "./utils/logger";
 import { startDepositMonitor } from "./crypto/deposit-monitor/monitor";
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
