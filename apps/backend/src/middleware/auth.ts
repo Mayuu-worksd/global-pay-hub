@@ -67,3 +67,26 @@ export async function requireMerchantApiKey(req: AuthenticatedRequest, res: Resp
   }
 }
 
+export async function requireAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  const userId = req.user?.id;
+  if (!userId) {
+    return res.status(401).json({ error: "Unauthorized. User session not found." });
+  }
+
+  try {
+    const { data: profile, error } = await supabaseAdmin
+      .from("profiles")
+      .select("role")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (error || !profile || profile.role !== "admin") {
+      return res.status(403).json({ error: "Forbidden. Admin access required." });
+    }
+
+    next();
+  } catch (err) {
+    return res.status(500).json({ error: "Internal server error during admin validation." });
+  }
+}
+
