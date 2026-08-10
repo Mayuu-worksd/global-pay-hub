@@ -352,6 +352,40 @@ export function useDeleteBeneficiary() {
   });
 }
 
+/** Fetches live USD rates from CoinGecko (crypto) + Frankfurter (fiat). No API key required. */
+export function useExchangeRates() {
+  return useQuery({
+    queryKey: ["exchange_rates"],
+    staleTime: 60_000, // refetch every 60s
+    queryFn: async (): Promise<Record<string, number>> => {
+      const [cryptoRes, fiatRes] = await Promise.allSettled([
+        fetch(
+          "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,tether&vs_currencies=usd"
+        ).then((r) => r.json()),
+        fetch("https://api.frankfurter.app/latest?from=USD&to=EUR,GBP").then((r) => r.json()),
+      ]);
+
+      const rates: Record<string, number> = { USD: 1, USDT: 1 };
+
+      if (cryptoRes.status === "fulfilled") {
+        const d = cryptoRes.value;
+        if (d?.bitcoin?.usd) rates["BTC"] = d.bitcoin.usd;
+        if (d?.ethereum?.usd) rates["ETH"] = d.ethereum.usd;
+        if (d?.tether?.usd) rates["USDT"] = d.tether.usd;
+      }
+
+      if (fiatRes.status === "fulfilled") {
+        const d = fiatRes.value;
+        // Frankfurter returns how many EUR/GBP per 1 USD, we need inverse (1 EUR = ? USD)
+        if (d?.rates?.EUR) rates["EUR"] = 1 / d.rates.EUR;
+        if (d?.rates?.GBP) rates["GBP"] = 1 / d.rates.GBP;
+      }
+
+      return rates;
+    },
+  });
+}
+
 export function useSettings() {
   return useQuery({
     queryKey: ["settings"],
