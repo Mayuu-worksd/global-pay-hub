@@ -153,7 +153,10 @@ export default function App() {
     const token = session?.access_token;
     if (!token) throw new Error("No active authentication session");
 
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:4000";
+    const defaultBackendUrl = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+      ? "http://localhost:4000"
+      : "https://backend-jdlg-production.up.railway.app";
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || defaultBackendUrl;
     const res = await fetch(`${backendUrl}${path}`, {
       method,
       headers: {
