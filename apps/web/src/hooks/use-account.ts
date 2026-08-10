@@ -250,15 +250,22 @@ export interface MovementInput {
   type: "deposit" | "withdrawal" | "send" | "receive";
   amount: number;
   currency: string;
-  counterparty?: string | undefined;
-  description?: string | undefined;
+  counterparty?: string;
+  description?: string;
 }
 
 export function useRecordMovement() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: MovementInput) => {
-      return await serverRecordMovement({ data: input });
+      const data: { type: MovementInput["type"]; amount: number; currency: string; counterparty?: string; description?: string } = {
+        type: input.type,
+        amount: input.amount,
+        currency: input.currency,
+        ...(input.counterparty !== undefined && { counterparty: input.counterparty }),
+        ...(input.description !== undefined && { description: input.description }),
+      };
+      return await serverRecordMovement({ data });
     },
     onSuccess: () => invalidateMoney(qc),
   });
