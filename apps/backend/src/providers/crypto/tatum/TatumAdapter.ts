@@ -12,7 +12,7 @@ export class TatumAdapter implements ICryptoProvider {
   private client: AxiosInstance;
 
   constructor() {
-    const apiKey = process.env.TATUM_API_KEY || "";
+    const apiKey = process.env['TATUM_API_KEY'] || "";
     this.client = axios.create({
       baseURL: "https://api.tatum.io/v3",
       headers: { "x-api-key": apiKey },
