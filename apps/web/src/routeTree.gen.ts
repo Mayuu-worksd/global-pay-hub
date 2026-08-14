@@ -18,6 +18,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SandboxRouteImport } from './routes/sandbox'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SolutionsRouteImport } from './routes/solutions'
 import { Route as AuthenticatedApiKeysRouteImport } from './routes/_authenticated/api-keys'
@@ -35,6 +36,9 @@ import { Route as AuthenticatedVirtualAccountsRouteImport } from './routes/_auth
 import { Route as AuthenticatedWalletsRouteImport } from './routes/_authenticated/wallets'
 import { Route as AuthenticatedWithdrawalsRouteImport } from './routes/_authenticated/withdrawals'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
+import { Route as SandboxIndexRouteImport } from './routes/sandbox/index'
+import { Route as SandboxLoginRouteImport } from './routes/sandbox/login'
+import { Route as SandboxSignupRouteImport } from './routes/sandbox/signup'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -78,6 +82,11 @@ const ProductsRoute = ProductsRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SandboxRoute = SandboxRouteImport.update({
+  id: '/sandbox',
+  path: '/sandbox',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignupRoute = SignupRouteImport.update({
@@ -169,6 +178,21 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SandboxIndexRoute = SandboxIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SandboxRoute,
+} as any)
+const SandboxLoginRoute = SandboxLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => SandboxRoute,
+} as any)
+const SandboxSignupRoute = SandboxSignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => SandboxRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -179,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/pricing': typeof PricingRoute
   '/products': typeof ProductsRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/sandbox': typeof SandboxRouteWithChildren
   '/signup': typeof SignupRoute
   '/solutions': typeof SolutionsRoute
   '/api-keys': typeof AuthenticatedApiKeysRoute
@@ -196,6 +221,9 @@ export interface FileRoutesByFullPath {
   '/wallets': typeof AuthenticatedWalletsRoute
   '/withdrawals': typeof AuthenticatedWithdrawalsRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/sandbox/login': typeof SandboxLoginRoute
+  '/sandbox/signup': typeof SandboxSignupRoute
+  '/sandbox/': typeof SandboxIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -223,6 +251,9 @@ export interface FileRoutesByTo {
   '/wallets': typeof AuthenticatedWalletsRoute
   '/withdrawals': typeof AuthenticatedWithdrawalsRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/sandbox/login': typeof SandboxLoginRoute
+  '/sandbox/signup': typeof SandboxSignupRoute
+  '/sandbox': typeof SandboxIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -235,6 +266,7 @@ export interface FileRoutesById {
   '/pricing': typeof PricingRoute
   '/products': typeof ProductsRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/sandbox': typeof SandboxRouteWithChildren
   '/signup': typeof SignupRoute
   '/solutions': typeof SolutionsRoute
   '/_authenticated/api-keys': typeof AuthenticatedApiKeysRoute
@@ -252,6 +284,9 @@ export interface FileRoutesById {
   '/_authenticated/wallets': typeof AuthenticatedWalletsRoute
   '/_authenticated/withdrawals': typeof AuthenticatedWithdrawalsRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/sandbox/login': typeof SandboxLoginRoute
+  '/sandbox/signup': typeof SandboxSignupRoute
+  '/sandbox/': typeof SandboxIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -264,6 +299,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/products'
     | '/reset-password'
+    | '/sandbox'
     | '/signup'
     | '/solutions'
     | '/api-keys'
@@ -281,6 +317,9 @@ export interface FileRouteTypes {
     | '/wallets'
     | '/withdrawals'
     | '/auth/callback'
+    | '/sandbox/login'
+    | '/sandbox/signup'
+    | '/sandbox/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -308,6 +347,9 @@ export interface FileRouteTypes {
     | '/wallets'
     | '/withdrawals'
     | '/auth/callback'
+    | '/sandbox/login'
+    | '/sandbox/signup'
+    | '/sandbox'
   id:
     | '__root__'
     | '/'
@@ -319,6 +361,7 @@ export interface FileRouteTypes {
     | '/pricing'
     | '/products'
     | '/reset-password'
+    | '/sandbox'
     | '/signup'
     | '/solutions'
     | '/_authenticated/api-keys'
@@ -336,6 +379,9 @@ export interface FileRouteTypes {
     | '/_authenticated/wallets'
     | '/_authenticated/withdrawals'
     | '/auth/callback'
+    | '/sandbox/login'
+    | '/sandbox/signup'
+    | '/sandbox/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -348,6 +394,7 @@ export interface RootRouteChildren {
   PricingRoute: typeof PricingRoute
   ProductsRoute: typeof ProductsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SandboxRoute: typeof SandboxRouteWithChildren
   SignupRoute: typeof SignupRoute
   SolutionsRoute: typeof SolutionsRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
@@ -416,6 +463,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sandbox': {
+      id: '/sandbox'
+      path: '/sandbox'
+      fullPath: '/sandbox'
+      preLoaderRoute: typeof SandboxRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signup': {
@@ -537,6 +591,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sandbox/': {
+      id: '/sandbox/'
+      path: '/'
+      fullPath: '/sandbox/'
+      preLoaderRoute: typeof SandboxIndexRouteImport
+      parentRoute: typeof SandboxRoute
+    }
+    '/sandbox/login': {
+      id: '/sandbox/login'
+      path: '/login'
+      fullPath: '/sandbox/login'
+      preLoaderRoute: typeof SandboxLoginRouteImport
+      parentRoute: typeof SandboxRoute
+    }
+    '/sandbox/signup': {
+      id: '/sandbox/signup'
+      path: '/signup'
+      fullPath: '/sandbox/signup'
+      preLoaderRoute: typeof SandboxSignupRouteImport
+      parentRoute: typeof SandboxRoute
+    }
   }
 }
 
@@ -577,6 +652,21 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface SandboxRouteChildren {
+  SandboxLoginRoute: typeof SandboxLoginRoute
+  SandboxSignupRoute: typeof SandboxSignupRoute
+  SandboxIndexRoute: typeof SandboxIndexRoute
+}
+
+const SandboxRouteChildren: SandboxRouteChildren = {
+  SandboxLoginRoute: SandboxLoginRoute,
+  SandboxSignupRoute: SandboxSignupRoute,
+  SandboxIndexRoute: SandboxIndexRoute,
+}
+
+const SandboxRouteWithChildren =
+  SandboxRoute._addFileChildren(SandboxRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -587,6 +677,7 @@ const rootRouteChildren: RootRouteChildren = {
   PricingRoute: PricingRoute,
   ProductsRoute: ProductsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  SandboxRoute: SandboxRouteWithChildren,
   SignupRoute: SignupRoute,
   SolutionsRoute: SolutionsRoute,
   AuthCallbackRoute: AuthCallbackRoute,
