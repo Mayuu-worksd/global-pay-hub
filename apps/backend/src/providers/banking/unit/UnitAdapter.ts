@@ -5,8 +5,8 @@ export class UnitAdapter implements IBankingProvider {
   private client: AxiosInstance;
 
   constructor() {
-    const apiKey = process.env.UNIT_API_KEY || "";
-    const baseUrl = process.env.UNIT_API_BASE_URL || "https://api.s.unit.sh";
+    const apiKey = process.env['UNIT_API_KEY'] || "";
+    const baseUrl = process.env['UNIT_API_BASE_URL'] || "https://api.s.unit.sh";
 
     this.client = axios.create({
       baseURL: baseUrl,
@@ -19,7 +19,7 @@ export class UnitAdapter implements IBankingProvider {
   }
 
   async createCustomer(data: any): Promise<{ id: string; status: string }> {
-    if (!process.env.UNIT_API_KEY) {
+    if (!process.env['UNIT_API_KEY']) {
       throw new Error("Unit API Key not configured.");
     }
     const applicationType = data.is_business ? "businessApplication" : "individualApplication";
@@ -75,7 +75,7 @@ export class UnitAdapter implements IBankingProvider {
   }
 
   async createAccount(customerId: string, currency: string): Promise<any> {
-    if (!process.env.UNIT_API_KEY) {
+    if (!process.env['UNIT_API_KEY']) {
       throw new Error("Unit API Key not configured.");
     }
     const response = await this.client.post("/accounts", {
@@ -103,7 +103,7 @@ export class UnitAdapter implements IBankingProvider {
   }
 
   async getBalance(accountId: string): Promise<{ balance: number; available: number }> {
-    if (!process.env.UNIT_API_KEY) {
+    if (!process.env['UNIT_API_KEY']) {
       throw new Error("Unit API Key not configured.");
     }
     const response = await this.client.get(`/accounts/${accountId}`);
@@ -113,7 +113,7 @@ export class UnitAdapter implements IBankingProvider {
   }
 
   async createBeneficiary(data: any): Promise<{ id: string }> {
-    if (!process.env.UNIT_API_KEY) {
+    if (!process.env['UNIT_API_KEY']) {
       throw new Error("Unit API Key not configured.");
     }
     // Simplification for the demo Unit logic
@@ -131,7 +131,7 @@ export class UnitAdapter implements IBankingProvider {
   }
 
   async sendPayment(data: any): Promise<{ id: string; status: string }> {
-    if (!process.env.UNIT_API_KEY) {
+    if (!process.env['UNIT_API_KEY']) {
       throw new Error("Unit API Key not configured.");
     }
     const response = await this.client.post("/payments", {
@@ -165,7 +165,7 @@ export class UnitAdapter implements IBankingProvider {
   }
 
   async getTransactions(accountId: string): Promise<any[]> {
-    if (!process.env.UNIT_API_KEY) {
+    if (!process.env['UNIT_API_KEY']) {
       throw new Error("Unit API Key not configured.");
     }
     const response = await this.client.get(`/transactions?filter[accountId]=${accountId}`);
