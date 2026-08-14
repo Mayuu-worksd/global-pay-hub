@@ -14,20 +14,30 @@ export function MarketingPage({
   children: ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white text-black font-sans selection:bg-[#1677FF] selection:text-white flex flex-col">
       <SiteHeader />
-      <main>
-        <section className="relative overflow-hidden surface-hero border-b border-border">
-          <div className="absolute inset-0 grid-lines opacity-50" aria-hidden />
-          <div className="relative mx-auto w-full max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
-            <p className="text-sm font-semibold uppercase tracking-widest text-primary">{eyebrow}</p>
-            <h1 className="mt-3 max-w-3xl font-display text-4xl font-extrabold leading-tight text-foreground sm:text-5xl">
+      <main className="flex-1 divide-y-4 divide-black">
+        {/* Marketing Hero Header */}
+        <section className="relative overflow-hidden bg-white grid-lines py-16 px-6">
+          <div className="relative mx-auto w-full max-w-7xl space-y-4">
+            <span className="inline-block font-mono text-xs font-extrabold uppercase tracking-widest text-[#1677FF] border-b-2 border-black pb-1">
+              {eyebrow}
+            </span>
+            <h1 className="max-w-3xl font-sans text-4xl sm:text-5xl font-black uppercase leading-[0.95] tracking-tighter">
               {title}
             </h1>
-            <p className="mt-5 max-w-2xl text-muted-foreground">{intro}</p>
+            <p className="max-w-2xl text-base font-semibold leading-relaxed text-gray-700 border-l-4 border-[#1677FF] pl-4">
+              {intro}
+            </p>
           </div>
         </section>
-        <div className="mx-auto w-full max-w-7xl px-5 py-16 lg:px-8 lg:py-20">{children}</div>
+        
+        {/* Main Content Area */}
+        <section className="bg-white py-16 px-6">
+          <div className="mx-auto w-full max-w-7xl">
+            {children}
+          </div>
+        </section>
       </main>
       <SiteFooter />
     </div>

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Menu, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Menu, X, TerminalSquare } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { useSession } from "@/hooks/use-session";
 
@@ -18,36 +17,45 @@ export function SiteHeader() {
   const { session } = useSession();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/60 glass-panel">
+    <header className="sticky top-0 z-50 w-full border-b-4 border-black bg-white select-none">
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-5 lg:px-8">
         <Logo />
 
-        <nav className="hidden items-center gap-1 lg:flex">
+        <nav className="hidden items-center gap-2 lg:flex">
           {NAV.map((item) => (
             <Link
               key={item.to}
               to={item.to}
-              activeProps={{ className: "text-primary" }}
-              className="rounded-lg px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+              activeProps={{ className: "bg-[#1677FF] text-white border-2 border-black shadow-[2px_2px_0px_0px_#000]" }}
+              className="px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider transition-all border-2 border-transparent hover:border-black hover:bg-gray-50 text-gray-800"
             >
               {item.label}
             </Link>
           ))}
         </nav>
 
-        <div className="hidden items-center gap-2 lg:flex">
+        <div className="hidden items-center gap-3 lg:flex">
           {session ? (
-            <Button asChild size="sm" className="rounded-full px-5">
-              <Link to="/dashboard">Go to dashboard</Link>
-            </Button>
+            <Link 
+              to="/dashboard"
+              className="bg-[#1677FF] hover:bg-[#1677FF]/90 text-white font-extrabold uppercase text-xs border-2 border-black py-2.5 px-6 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 transition-all text-center"
+            >
+              Go to dashboard
+            </Link>
           ) : (
             <>
-              <Button asChild variant="ghost" size="sm" className="rounded-full px-4">
-                <Link to="/login">Login</Link>
-              </Button>
-              <Button asChild size="sm" className="rounded-full px-5 shadow-glow">
-                <Link to="/signup">Get Started</Link>
-              </Button>
+              <Link 
+                to="/login"
+                className="bg-white hover:bg-gray-50 text-black font-extrabold uppercase text-xs border-2 border-black py-2.5 px-6 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 transition-all text-center"
+              >
+                Login
+              </Link>
+              <Link 
+                to="/signup"
+                className="bg-[#1677FF] hover:bg-[#1677FF]/90 text-white font-extrabold uppercase text-xs border-2 border-black py-2.5 px-6 shadow-[2.5px_2.5px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 transition-all text-center"
+              >
+                Get Started
+              </Link>
             </>
           )}
         </div>
@@ -56,39 +64,51 @@ export function SiteHeader() {
           type="button"
           aria-label="Toggle navigation"
           onClick={() => setOpen((v) => !v)}
-          className="grid size-10 place-items-center rounded-lg border border-border lg:hidden"
+          className="grid size-10 place-items-center border-2 border-black hover:bg-gray-50 lg:hidden"
         >
           {open ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
       </div>
 
       {open && (
-        <div className="border-t border-border/60 bg-background/95 px-5 py-4 lg:hidden">
-          <div className="flex flex-col gap-1">
+        <div className="border-t-4 border-black bg-white px-5 py-4 lg:hidden space-y-4">
+          <div className="flex flex-col gap-1.5">
             {NAV.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
                 onClick={() => setOpen(false)}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-accent"
+                className="px-3 py-2 text-xs font-bold uppercase tracking-wider border-2 border-transparent hover:border-black hover:bg-gray-50 text-gray-800"
               >
                 {item.label}
               </Link>
             ))}
           </div>
-          <div className="mt-4 flex flex-col gap-2">
+          <div className="flex flex-col gap-2 pt-2 border-t-2 border-black">
             {session ? (
-              <Button asChild className="rounded-full">
-                <Link to="/dashboard">Go to dashboard</Link>
-              </Button>
+              <Link 
+                to="/dashboard"
+                onClick={() => setOpen(false)}
+                className="w-full bg-[#1677FF] text-white font-extrabold uppercase text-xs border-2 border-black py-2.5 text-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 transition-all"
+              >
+                Go to dashboard
+              </Link>
             ) : (
               <>
-                <Button asChild variant="outline" className="rounded-full">
-                  <Link to="/login">Login</Link>
-                </Button>
-                <Button asChild className="rounded-full">
-                  <Link to="/signup">Get Started</Link>
-                </Button>
+                <Link 
+                  to="/login"
+                  onClick={() => setOpen(false)}
+                  className="w-full bg-white text-black font-extrabold uppercase text-xs border-2 border-black py-2.5 text-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 transition-all"
+                >
+                  Login
+                </Link>
+                <Link 
+                  to="/signup"
+                  onClick={() => setOpen(false)}
+                  className="w-full bg-[#1677FF] text-white font-extrabold uppercase text-xs border-2 border-black py-2.5 text-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 transition-all"
+                >
+                  Get Started
+                </Link>
               </>
             )}
           </div>
