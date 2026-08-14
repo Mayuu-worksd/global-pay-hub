@@ -1,4 +1,8 @@
 import "./lib/error-capture";
+import * as dotenv from "dotenv";
+import * as path from "path";
+
+dotenv.config({ path: path.resolve(process.cwd(), "../../.env") });
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
@@ -200,7 +204,7 @@ async function handleCurrencycloudWebhook(request: Request): Promise<Response> {
         .maybeSingle();
 
       if (profile) {
-        await supabaseAdmin.from("exchange_orders").insert({
+        await (supabaseAdmin as any).from("exchange_orders").insert({
           user_id: profile.id,
           from_currency: from,
           to_currency: to,
