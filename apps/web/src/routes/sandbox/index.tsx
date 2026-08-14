@@ -261,67 +261,68 @@ function SandboxConsolePage() {
     <div className="min-h-screen bg-white flex flex-col font-sans select-none">
       
       {/* Top Banner Header */}
-      <header className="border-b-4 border-black flex justify-between items-center px-6 py-4 bg-white sticky top-0 z-50">
-        <div className="flex items-center gap-3">
-          <Link to="/" className="font-black text-xl uppercase tracking-tighter">
+      <header className="border-b-4 border-black flex justify-between items-center px-4 md:px-6 py-3 md:py-4 bg-white sticky top-0 z-50">
+        <div className="flex items-center gap-2 md:gap-3 min-w-0">
+          <Link to="/" className="font-black text-lg md:text-xl uppercase tracking-tighter shrink-0">
             GlobalPay
           </Link>
-          <span className="bg-[#1677FF] text-white px-2 py-0.5 font-mono text-xs font-bold border-2 border-black tracking-wider uppercase">
+          <span className="bg-[#1677FF] text-white px-2 py-0.5 font-mono text-xs font-bold border-2 border-black tracking-wider uppercase shrink-0">
             Sandbox
           </span>
-          <span className="bg-green-100 text-green-800 border border-green-300 px-2 py-0.5 font-mono text-[10px] font-bold uppercase rounded-full flex items-center gap-1">
+          <span className="hidden sm:flex bg-green-100 text-green-800 border border-green-300 px-2 py-0.5 font-mono text-[10px] font-bold uppercase rounded-full items-center gap-1">
             <span className="size-1.5 rounded-full bg-green-500 inline-block animate-pulse"></span>
             API Operational
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
-          <span className="font-mono text-xs font-bold hidden md:inline">
-            Logged in: <span className="text-[#1677FF]">{user?.email}</span>
+        <div className="flex items-center gap-2 md:gap-3 shrink-0">
+          <span className="font-mono text-xs font-bold hidden lg:inline truncate max-w-[200px]">
+            <span className="text-[#1677FF]">{user?.email}</span>
           </span>
           <button 
             onClick={handleLogout}
-            className="border-2 border-black px-3 py-1 font-bold text-xs uppercase flex items-center gap-1.5 hover:bg-gray-100 transition-all shadow-[2px_2px_0px_0px_#000000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0px_0px_#000000]"
+            className="border-2 border-black px-2.5 md:px-3 py-1 font-bold text-xs uppercase flex items-center gap-1.5 hover:bg-gray-100 transition-all shadow-[2px_2px_0px_0px_#000000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0px_0px_#000000]"
           >
             <LogOut className="size-3.5" />
-            Logout
+            <span className="hidden sm:inline">Logout</span>
           </button>
         </div>
       </header>
 
       {/* Main Container */}
-      <div className="flex-1 flex flex-col lg:grid lg:grid-cols-[250px_1fr] divide-y-4 lg:divide-y-0 lg:divide-x-4 divide-black">
+      <div className="flex-1 flex flex-col lg:grid lg:grid-cols-[220px_1fr] divide-y-2 lg:divide-y-0 lg:divide-x-4 divide-black min-h-0">
         
         {/* Left Console Navigation */}
-        <aside className="py-4 lg:py-8 px-4 space-y-4 lg:space-y-6 flex flex-col">
+        <aside className="lg:py-8 px-4 lg:px-4 lg:space-y-6 flex flex-col">
           <div className="space-y-1">
-            <h4 className="font-mono text-[10px] font-extrabold uppercase tracking-widest text-[#1677FF] px-2 mb-2 border-b-2 border-black pb-1 lg:block hidden">
+            <h4 className="font-mono text-[10px] font-extrabold uppercase tracking-widest text-[#1677FF] px-2 mb-2 border-b-2 border-black pb-1 hidden lg:block">
               Menu
             </h4>
-            <nav className="flex flex-row lg:flex-col gap-1.5 overflow-x-auto pb-2 lg:pb-0 scrollbar-none">
+            {/* Mobile: horizontal scroll nav */}
+            <nav className="flex flex-row lg:flex-col gap-1.5 overflow-x-auto py-3 lg:py-0 scrollbar-none -mx-4 px-4 lg:mx-0 lg:px-0">
               {[
                 { id: "overview", label: "Overview", icon: Activity },
                 { id: "api-keys", label: "API Keys", icon: Key },
-                { id: "api-explorer", label: "API Explorer", icon: Terminal },
-                { id: "customers", label: "Test Customers", icon: Users },
+                { id: "api-explorer", label: "Explorer", icon: Terminal },
+                { id: "customers", label: "Customers", icon: Users },
                 { id: "accounts", label: "Accounts", icon: CreditCard },
                 { id: "wallets", label: "Wallets", icon: Wallet },
-                { id: "transactions", label: "Transactions", icon: ArrowUpDown },
+                { id: "transactions", label: "Payments", icon: ArrowUpDown },
                 { id: "webhooks", label: "Webhooks", icon: Globe },
-                { id: "logs", label: "API Logs", icon: Layers }
+                { id: "logs", label: "Logs", icon: Layers }
               ].map((tab) => {
                 const Icon = tab.icon;
                 return (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
-                    className={`whitespace-nowrap w-auto lg:w-full text-left px-3 py-2 font-mono text-xs sm:text-sm border-2 transition-all font-bold flex items-center gap-2.5 shrink-0 ${
+                    className={`whitespace-nowrap w-auto lg:w-full text-left px-3 py-2 font-mono text-xs border-2 transition-all font-bold flex items-center gap-2 shrink-0 ${
                       activeTab === tab.id
                         ? "bg-[#1677FF] text-white border-black shadow-[2px_2px_0px_0px_#000]"
                         : "border-transparent hover:border-black hover:bg-gray-50 text-gray-800"
                     }`}
                   >
-                    <Icon className="size-4 shrink-0" />
+                    <Icon className="size-3.5 lg:size-4 shrink-0" />
                     {tab.label}
                   </button>
                 );
@@ -329,19 +330,19 @@ function SandboxConsolePage() {
             </nav>
           </div>
 
-          <div className="pt-2 lg:pt-6 border-t-2 lg:border-t-2 border-black">
+          <div className="hidden lg:block pt-6 border-t-2 border-black">
             <Link
               to="/developers"
               className="w-full border-2 border-black hover:bg-gray-100 py-2.5 px-3 font-bold text-xs uppercase flex items-center justify-center gap-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
             >
               <BookOpen className="size-4" />
-              API Documentation
+              API Docs
             </Link>
           </div>
         </aside>
 
         {/* Right Dashboard Workspace */}
-        <main className="p-8 lg:p-10 space-y-8 bg-white overflow-y-auto">
+        <main className="p-4 md:p-8 lg:p-10 space-y-6 md:space-y-8 bg-white overflow-y-auto min-w-0">
           
           {dashboardError && (
             <div className="p-4 bg-red-50 border-4 border-black shadow-[4px_4px_0px_0px_#000] flex items-start gap-3">
@@ -368,22 +369,22 @@ function SandboxConsolePage() {
               </div>
 
               {/* Metric grid */}
-              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="border-4 border-black p-6 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                  <span className="font-mono text-xs font-bold uppercase text-[#1677FF]">Environment</span>
-                  <div className="text-2xl font-black uppercase mt-1">SANDBOX</div>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+                <div className="border-4 border-black p-4 md:p-6 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                  <span className="font-mono text-[10px] md:text-xs font-bold uppercase text-[#1677FF]">Environment</span>
+                  <div className="text-xl md:text-2xl font-black uppercase mt-1">SANDBOX</div>
                 </div>
-                <div className="border-4 border-black p-6 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                  <span className="font-mono text-xs font-bold uppercase text-[#1677FF]">Requests Today</span>
-                  <div className="text-3xl font-black mt-1">{stats.requestsCount}</div>
+                <div className="border-4 border-black p-4 md:p-6 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                  <span className="font-mono text-[10px] md:text-xs font-bold uppercase text-[#1677FF]">Requests Today</span>
+                  <div className="text-2xl md:text-3xl font-black mt-1">{stats.requestsCount}</div>
                 </div>
-                <div className="border-4 border-black p-6 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                  <span className="font-mono text-xs font-bold uppercase text-[#1677FF]">Success Rate</span>
-                  <div className="text-3xl font-black mt-1">{stats.successRate}%</div>
+                <div className="border-4 border-black p-4 md:p-6 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                  <span className="font-mono text-[10px] md:text-xs font-bold uppercase text-[#1677FF]">Success Rate</span>
+                  <div className="text-2xl md:text-3xl font-black mt-1">{stats.successRate}%</div>
                 </div>
-                <div className="border-4 border-black p-6 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                  <span className="font-mono text-xs font-bold uppercase text-[#1677FF]">Last Activity</span>
-                  <div className="text-lg font-black uppercase mt-1.5">{stats.lastActivity}</div>
+                <div className="border-4 border-black p-4 md:p-6 bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                  <span className="font-mono text-[10px] md:text-xs font-bold uppercase text-[#1677FF]">Last Activity</span>
+                  <div className="text-base md:text-lg font-black uppercase mt-1.5">{stats.lastActivity}</div>
                 </div>
               </div>
 
@@ -423,9 +424,9 @@ function SandboxConsolePage() {
               </div>
 
               {/* Create Key Form */}
-              <div className="border-4 border-black p-6 bg-white shadow-[4px_4px_0px_0px_#000] max-w-xl">
+              <div className="border-4 border-black p-4 md:p-6 bg-white shadow-[4px_4px_0px_0px_#000] max-w-xl">
                 <h3 className="font-bold text-sm font-mono uppercase tracking-wider mb-4 border-b border-black pb-2">Generate Sandbox Key</h3>
-                <form onSubmit={handleCreateKey} className="flex gap-4">
+                <form onSubmit={handleCreateKey} className="flex flex-col sm:flex-row gap-3">
                   <input
                     type="text"
                     required
@@ -471,14 +472,14 @@ function SandboxConsolePage() {
 
               {/* Keys List */}
               <div className="border-4 border-black shadow-[6px_6px_0px_0px_#000] overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full min-w-[500px] text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-100 border-b-2 border-black text-xs font-mono font-bold uppercase">
-                      <th className="p-4 border-r border-black">Key Description</th>
-                      <th className="p-4 border-r border-black">Prefix</th>
-                      <th className="p-4 border-r border-black">Created At</th>
-                      <th className="p-4 border-r border-black">Status</th>
-                      <th className="p-4">Actions</th>
+                      <th className="p-3 md:p-4 border-r border-black">Key Description</th>
+                      <th className="p-3 md:p-4 border-r border-black">Prefix</th>
+                      <th className="p-3 md:p-4 border-r border-black">Created At</th>
+                      <th className="p-3 md:p-4 border-r border-black">Status</th>
+                      <th className="p-3 md:p-4">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-black font-semibold text-sm">
@@ -533,7 +534,7 @@ function SandboxConsolePage() {
                 <p className="text-sm font-semibold text-gray-500">Test GlobalPay REST endpoints interactively without leaving your browser.</p>
               </div>
 
-              <div className="grid lg:grid-cols-[1fr_1.2fr] gap-8 items-start">
+              <div className="grid lg:grid-cols-[1fr_1.2fr] gap-6 md:gap-8 items-start">
                 {/* Inputs Pane */}
                 <div className="border-4 border-black p-6 bg-white shadow-[6px_6px_0px_0px_#000] space-y-6">
                   
@@ -605,7 +606,7 @@ function SandboxConsolePage() {
                   )}
 
                   {/* Terminal block */}
-                  <div className="border-4 border-black bg-black text-white p-6 shadow-[6px_6px_0px_0px_#1677FF] font-mono text-xs relative min-h-[300px]">
+                  <div className="border-4 border-black bg-black text-white p-4 md:p-6 shadow-[6px_6px_0px_0px_#1677FF] font-mono text-xs relative min-h-[250px] md:min-h-[300px]">
                     <div className="absolute top-2 right-3 flex gap-1.5">
                       <span className="size-2 bg-red-500 rounded-full"></span>
                       <span className="size-2 bg-yellow-500 rounded-full"></span>
@@ -621,7 +622,7 @@ function SandboxConsolePage() {
                         <span>Sending payload to backend...</span>
                       </div>
                     ) : explorerResponse ? (
-                      <pre className="overflow-x-auto leading-relaxed text-gray-200 select-all">
+                      <pre className="overflow-x-auto leading-relaxed text-gray-200 select-all whitespace-pre-wrap break-all">
                         {JSON.stringify(explorerResponse, null, 2)}
                       </pre>
                     ) : (
@@ -644,14 +645,14 @@ function SandboxConsolePage() {
               </div>
 
               <div className="border-4 border-black shadow-[6px_6px_0px_0px_#000] overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full min-w-[480px] text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-100 border-b-2 border-black text-xs font-mono font-bold uppercase">
-                      <th className="p-4 border-r border-black">Customer ID</th>
-                      <th className="p-4 border-r border-black">Full Name</th>
-                      <th className="p-4 border-r border-black">Email</th>
-                      <th className="p-4 border-r border-black">City / Country</th>
-                      <th className="p-4">Status</th>
+                      <th className="p-3 md:p-4 border-r border-black">Customer ID</th>
+                      <th className="p-3 md:p-4 border-r border-black">Full Name</th>
+                      <th className="p-3 md:p-4 border-r border-black">Email</th>
+                      <th className="p-3 md:p-4 border-r border-black">City / Country</th>
+                      <th className="p-3 md:p-4">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-black font-semibold text-sm">
@@ -693,10 +694,10 @@ function SandboxConsolePage() {
               </div>
 
               <div className="border-4 border-black shadow-[6px_6px_0px_0px_#000] overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full min-w-[700px] text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-100 border-b-2 border-black text-xs font-mono font-bold uppercase">
-                      <th className="p-4 border-r border-black">Account ID</th>
+                      <th className="p-3 md:p-4 border-r border-black">Account ID</th>
                       <th className="p-4 border-r border-black">Linked Customer ID</th>
                       <th className="p-4 border-r border-black">Bank Name</th>
                       <th className="p-4 border-r border-black">Account Number</th>
@@ -744,10 +745,10 @@ function SandboxConsolePage() {
               </div>
 
               <div className="border-4 border-black shadow-[6px_6px_0px_0px_#000] overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full min-w-[600px] text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-100 border-b-2 border-black text-xs font-mono font-bold uppercase">
-                      <th className="p-4 border-r border-black">Wallet ID</th>
+                      <th className="p-3 md:p-4 border-r border-black">Wallet ID</th>
                       <th className="p-4 border-r border-black">Type</th>
                       <th className="p-4 border-r border-black">Currency / Asset</th>
                       <th className="p-4 border-r border-black">Deposit Coordinates</th>
@@ -793,10 +794,10 @@ function SandboxConsolePage() {
               </div>
 
               <div className="border-4 border-black shadow-[6px_6px_0px_0px_#000] overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full min-w-[600px] text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-100 border-b-2 border-black text-xs font-mono font-bold uppercase">
-                      <th className="p-4 border-r border-black">Transaction ID</th>
+                      <th className="p-3 md:p-4 border-r border-black">Transaction ID</th>
                       <th className="p-4 border-r border-black">Destination Account/Beneficiary</th>
                       <th className="p-4 border-r border-black">Amount</th>
                       <th className="p-4 border-r border-black">Reference ID</th>
@@ -851,7 +852,7 @@ function SandboxConsolePage() {
                     POST https://api.sandbox.globalpay.io/api/webhooks/banking-circle
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="block text-xs font-mono font-bold uppercase tracking-wider">Destination Account (Virtual)</label>
                       <input 
@@ -894,10 +895,10 @@ function SandboxConsolePage() {
 
               {/* Webhooks History */}
               <div className="border-4 border-black shadow-[6px_6px_0px_0px_#000] overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full min-w-[600px] text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-100 border-b-2 border-black text-xs font-mono font-bold uppercase">
-                      <th className="p-4 border-r border-black">Event ID</th>
+                      <th className="p-3 md:p-4 border-r border-black">Event ID</th>
                       <th className="p-4 border-r border-black">Event Type</th>
                       <th className="p-4 border-r border-black">Target Endpoint</th>
                       <th className="p-4 border-r border-black">Reference ID</th>
@@ -948,10 +949,10 @@ function SandboxConsolePage() {
                 <p className="text-sm font-semibold text-gray-500">Inspect raw HTTP requests and response payloads submitted via your API keys.</p>
               </div>
 
-              <div className="grid lg:grid-cols-[1.2fr_1fr] gap-8 items-start">
+              <div className="grid lg:grid-cols-[1.2fr_1fr] gap-6 md:gap-8 items-start">
                 {/* List Table */}
                 <div className="border-4 border-black shadow-[6px_6px_0px_0px_#000] overflow-x-auto bg-white">
-                  <table className="w-full text-left border-collapse">
+                  <table className="w-full min-w-[400px] text-left border-collapse">
                     <thead>
                       <tr className="bg-gray-100 border-b-2 border-black text-xs font-mono font-bold uppercase">
                         <th className="p-4 border-r border-black">Method & Path</th>
@@ -1005,7 +1006,7 @@ function SandboxConsolePage() {
                 </div>
 
                 {/* Inspect Details Pane */}
-                <div className="border-4 border-black p-6 bg-white shadow-[6px_6px_0px_0px_#000] min-h-[400px] space-y-6">
+                <div className="border-4 border-black p-4 md:p-6 bg-white shadow-[6px_6px_0px_0px_#000] lg:min-h-[400px] space-y-6">
                   <h3 className="font-bold text-sm font-mono uppercase tracking-wider border-b border-black pb-2">Log Inspector</h3>
                   {selectedLog ? (
                     <div className="space-y-6">
