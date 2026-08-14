@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { 
-  Terminal, Key, Activity, Check, Copy, Plus, Trash, Eye, EyeOff, 
-  Layers, ArrowUpDown, Globe, RefreshCw, LogOut, BookOpen, Settings, 
+  Terminal, Key, Activity, Check, Plus, Trash,
+  Layers, ArrowUpDown, Globe, RefreshCw, LogOut, BookOpen,
   AlertCircle, Users, Wallet, CreditCard, Play 
 } from "lucide-react";
 import { 
@@ -11,7 +11,8 @@ import {
   serverListSandboxApiKeys, 
   serverRevokeSandboxApiKey, 
   serverGetSandboxLogs, 
-  serverExecuteSandboxApi 
+  serverExecuteSandboxApi,
+  serverTriggerWebhook
 } from "@/services/server-functions";
 
 export const Route = createFileRoute("/sandbox/")({
@@ -875,25 +876,8 @@ function SandboxConsolePage() {
                     onClick={async () => {
                       const accVal = (document.getElementById("sim-acc") as HTMLInputElement).value;
                       const amountVal = Number((document.getElementById("sim-amount") as HTMLInputElement).value);
-                      
                       try {
-                        // Execute simulated webhook log insertion
-                        const { error } = await (supabase as any).from("webhook_events").insert({
-                          merchant_id: user.id,
-                          event_type: "payment.received",
-                          payload: {
-                            accountNumber: accVal,
-                            amount: amountVal,
-                            currency: "USD",
-                            reference: `SIM-${Date.now()}`,
-                            debtorName: "Mock Sender Corp"
-                          },
-                          endpoint_url: "/api/webhooks/banking-circle",
-                          status: "pending",
-                          attempts: 0
-                        });
-
-                        if (error) throw error;
+                        await serverTriggerWebhook({ data: { accountNumber: accVal, amount: amountVal } });
                         alert("✅ Webhook event triggered successfully! Check 'API Logs' or 'Webhooks' log tab.");
                         await fetchData();
                       } catch (err: any) {

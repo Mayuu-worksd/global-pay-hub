@@ -364,6 +364,32 @@ export const serverSaveBeneficiary = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const serverTriggerWebhook = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { accountNumber: string; amount: number }) => data)
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { error } = await (supabaseAdmin as any).from("webhook_events").insert({
+      merchant_id: userId,
+      event_type: "payment.received",
+      payload: {
+        accountNumber: data.accountNumber,
+        amount: data.amount,
+        currency: "USD",
+        reference: `SIM-${Date.now()}`,
+        debtorName: "Mock Sender Corp",
+      },
+      endpoint_url: "/api/webhooks/banking-circle",
+      status: "pending",
+      attempts: 0,
+    });
+
+    if (error) throw new Error(error.message);
+    return { success: true };
+  });
+
 export const serverCreateSandboxApiKey = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((name: string) => name)
@@ -526,11 +552,11 @@ export const serverExecuteSandboxApi = createServerFn({ method: "POST" })
 
         await (supabaseAdmin as any).from("virtual_accounts").insert({
           user_id: userId,
-          customer_id: body.customer_id,
           account_number: res.accountNumber || res.iban || "N/A",
           routing_number: res.routingNumber || res.swift_bic || "N/A",
           bank_name: res.bankName || "Partner Bank",
           currency: body.currency || "USD",
+          account_name: body.account_name || "Collections Account",
           status: "active",
         });
 
