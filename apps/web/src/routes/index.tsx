@@ -1,5 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { motion } from "framer-motion";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import {
   ArrowRight,
   Banknote,
@@ -14,15 +13,20 @@ import {
   Wallet,
   Zap,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/components/marketing/site-header";
 import { SiteFooter } from "@/components/marketing/site-footer";
-import heroImage from "@/assets/hero-dashboard.jpg";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
+  beforeLoad: async () => {
+    const { data } = await supabase.auth.getSession();
+    if (data?.session) {
+      throw redirect({ to: "/dashboard" });
+    }
+  },
   head: () => ({
     meta: [
-      { title: "Nexus Pay — Global Hybrid Payment Infrastructure" },
+      { title: "GlobalPay Hub — Global Hybrid Payment Infrastructure" },
       {
         name: "description",
         content:
@@ -133,285 +137,300 @@ const CODE_SAMPLE = `curl https://api.globalpay.io/v1/payouts \\
     "reference": "INV-10422"
   }'`;
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  show: { opacity: 1, y: 0 },
-};
-
 function LandingPage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white text-black font-sans selection:bg-[#1677FF] selection:text-white">
       <SiteHeader />
 
-      <main>
-        {/* Hero */}
-        <section className="relative overflow-hidden surface-hero">
-          <div className="absolute inset-0 grid-lines opacity-60" aria-hidden />
-          <div className="relative mx-auto grid w-full max-w-7xl gap-14 px-5 pb-20 pt-16 lg:grid-cols-2 lg:items-center lg:gap-10 lg:px-8 lg:pb-28 lg:pt-24">
-            <motion.div initial="hidden" animate="show" variants={fadeUp} transition={{ duration: 0.6 }}>
-              <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary-soft px-3.5 py-1.5 text-xs font-semibold text-primary">
-                <Zap className="size-3.5" />
-                Now supporting instant USDT settlement
+      <main className="divide-y-4 divide-black">
+        
+        {/* Hero Section */}
+        <section className="relative overflow-hidden bg-white grid-lines py-20 lg:py-28 px-6">
+          <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            
+            <div className="space-y-6">
+              <span className="inline-flex items-center gap-2 bg-black text-white px-3 py-1 font-mono text-xs font-bold border-2 border-black tracking-widest uppercase shadow-[2px_2px_0px_0px_#1677FF]">
+                <Zap className="size-3.5 fill-white" />
+                USDT SETTLEMENT ACTIVE
               </span>
-              <h1 className="mt-6 font-display text-4xl font-extrabold leading-[1.06] text-foreground sm:text-5xl lg:text-6xl">
-                Global Hybrid <span className="text-gradient">Payment Infrastructure</span>
+              
+              <h1 className="font-sans text-4xl sm:text-5xl lg:text-6xl font-black uppercase leading-[0.95] tracking-tighter">
+                GLOBAL HYBRID <br />
+                <span className="text-[#1677FF]">PAYMENT STACK.</span>
               </h1>
-              <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+              
+              <p className="max-w-xl text-base sm:text-lg font-semibold leading-relaxed text-gray-700 border-l-4 border-[#1677FF] pl-4">
                 Move money between fiat and digital assets on one compliant platform. Open wallets,
                 issue virtual bank accounts, convert currencies and pay out worldwide — through a
                 single dashboard and a single API.
               </p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Button asChild size="lg" className="rounded-full px-7 shadow-glow">
-                  <Link to="/signup">
-                    Create an account <ArrowRight className="ml-1 size-4" />
-                  </Link>
-                </Button>
-                <Button asChild size="lg" variant="outline" className="rounded-full px-7">
-                  <Link to="/developers">Read the API docs</Link>
-                </Button>
+              
+              <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                <Link
+                  to="/signup"
+                  className="bg-[#1677FF] hover:bg-[#1677FF]/90 text-white font-extrabold uppercase text-sm border-2 border-black py-4 px-8 text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all flex items-center justify-center gap-2"
+                >
+                  Create an account
+                  <ArrowRight className="size-4 stroke-[3px]" />
+                </Link>
+                <Link
+                  to="/developers"
+                  className="bg-white hover:bg-gray-50 text-black font-extrabold uppercase text-sm border-2 border-black py-4 px-8 text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all"
+                >
+                  Read the API docs
+                </Link>
               </div>
-              <dl className="mt-12 grid max-w-lg grid-cols-3 gap-6">
+
+              {/* Stats Block */}
+              <div className="grid grid-cols-3 gap-4 pt-6 border-t-2 border-black">
                 {[
                   ["$4.2B", "Processed annually"],
                   ["60+", "Payout corridors"],
                   ["99.99%", "API uptime"],
                 ].map(([value, label]) => (
-                  <div key={label}>
-                    <dt className="font-display text-2xl font-bold text-foreground">{value}</dt>
-                    <dd className="mt-1 text-xs text-muted-foreground">{label}</dd>
-                  </div>
-                ))}
-              </dl>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.7, delay: 0.1 }}
-              className="relative"
-            >
-              <div className="overflow-hidden rounded-3xl border border-border/70 shadow-elevated">
-                <img
-                  src={heroImage}
-                  alt="GlobalPay dashboard showing multi-currency wallet balances and a payout flow"
-                  className="w-full"
-                  loading="eager"
-                />
-              </div>
-              <div className="absolute -bottom-6 -left-4 hidden w-56 rounded-2xl glass-panel p-4 sm:block">
-                <p className="text-xs text-muted-foreground">Settlement time</p>
-                <p className="mt-1 font-display text-2xl font-bold text-foreground">1.4s</p>
-                <p className="mt-1 text-xs text-success">Median across all corridors</p>
-              </div>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Features */}
-        <section className="mx-auto w-full max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
-          <div className="max-w-2xl">
-            <p className="text-sm font-semibold uppercase tracking-widest text-primary">Platform</p>
-            <h2 className="mt-3 font-display text-3xl font-bold text-foreground sm:text-4xl">
-              Everything a modern treasury needs
-            </h2>
-            <p className="mt-4 text-muted-foreground">
-              Purpose-built primitives instead of a patchwork of banking partners, exchanges and
-              spreadsheets.
-            </p>
-          </div>
-
-          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {FEATURES.map((feature, i) => (
-              <motion.article
-                key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.45, delay: i * 0.05 }}
-                className="group rounded-2xl glass-tile p-6 transition-shadow hover:shadow-elevated"
-              >
-                <span className="grid size-11 place-items-center rounded-xl bg-primary-soft text-primary">
-                  <feature.icon className="size-5" />
-                </span>
-                <h3 className="mt-5 text-lg font-semibold text-foreground">{feature.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{feature.body}</p>
-              </motion.article>
-            ))}
-          </div>
-        </section>
-
-        {/* Currencies */}
-        <section className="border-y border-border bg-secondary/40">
-          <div className="mx-auto w-full max-w-7xl px-5 py-16 lg:px-8">
-            <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
-              <div className="max-w-md">
-                <h2 className="font-display text-2xl font-bold text-foreground sm:text-3xl">
-                  Supported currencies
-                </h2>
-                <p className="mt-3 text-sm text-muted-foreground">
-                  Fiat and digital assets settle on the same ledger, so a balance is a balance —
-                  regardless of rail.
-                </p>
-              </div>
-              <div className="grid flex-1 grid-cols-2 gap-3 sm:grid-cols-3">
-                {CURRENCIES.map((c) => (
-                  <div
-                    key={c.code}
-                    className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3"
-                  >
-                    <span className="grid size-9 place-items-center rounded-lg bg-primary-soft font-mono text-xs font-semibold text-primary">
-                      {c.code}
-                    </span>
-                    <span className="text-sm text-muted-foreground">{c.name}</span>
+                  <div key={label} className="font-mono">
+                    <dt className="text-xl sm:text-2xl font-black text-black">{value}</dt>
+                    <dd className="text-[10px] text-gray-500 font-extrabold uppercase tracking-wide mt-1">{label}</dd>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
-        </section>
 
-        {/* API docs */}
-        <section className="mx-auto w-full max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
-          <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-widest text-primary">
-                Developers
-              </p>
-              <h2 className="mt-3 font-display text-3xl font-bold text-foreground sm:text-4xl">
-                A REST API your engineers will actually enjoy
-              </h2>
-              <p className="mt-4 text-muted-foreground">
-                Predictable resources, idempotency keys on every write, signed webhooks and
-                sandbox parity with production.
-              </p>
-              <ul className="mt-6 space-y-3">
-                {[
-                  "Bearer-token authentication with scoped API keys",
-                  "Webhooks for deposits, payouts and conversions",
-                  "Sandbox environment with simulated settlement",
-                ].map((item) => (
-                  <li key={item} className="flex items-start gap-3 text-sm text-foreground">
-                    <Check className="mt-0.5 size-4 shrink-0 text-primary" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Button asChild variant="outline" className="mt-8 rounded-full px-6">
-                <Link to="/developers">Explore documentation</Link>
-              </Button>
-            </div>
-            <div className="overflow-hidden rounded-2xl border border-border bg-foreground/95 shadow-elevated">
-              <div className="flex items-center gap-2 border-b border-white/10 px-4 py-3">
-                <span className="size-2.5 rounded-full bg-destructive/80" />
-                <span className="size-2.5 rounded-full bg-warning/80" />
-                <span className="size-2.5 rounded-full bg-success/80" />
-                <span className="ml-2 font-mono text-xs text-background/60">POST /v1/payouts</span>
+            {/* Stylized Neo-Brutalist Logo Visual */}
+            <div className="flex flex-col items-center justify-center py-6 select-none">
+              <div className="relative grid size-48 place-items-center bg-[#1677FF] border-8 border-black shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] transition-transform hover:-translate-y-1 hover:translate-x-1 duration-200">
+                {/* Inner white square */}
+                <div className="size-16 bg-white border-4 border-black" />
+                {/* Upper-right white dot */}
+                <div className="absolute right-5 top-5 size-7 rounded-full bg-white border-4 border-black" />
               </div>
-              <pre className="overflow-x-auto p-5 font-mono text-[12.5px] leading-relaxed text-background/90">
-                {CODE_SAMPLE}
-              </pre>
+              
+              <div className="mt-8 text-center font-sans text-5xl lg:text-6xl font-black uppercase tracking-tighter">
+                Global<span className="text-[#1677FF]">Pay</span>
+              </div>
             </div>
+
           </div>
         </section>
 
-        {/* Pricing */}
-        <section className="border-t border-border bg-secondary/30">
-          <div className="mx-auto w-full max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
-            <div className="mx-auto max-w-2xl text-center">
-              <h2 className="font-display text-3xl font-bold text-foreground sm:text-4xl">
-                Pricing that scales with volume
+        {/* Features Section */}
+        <section className="bg-white py-20 lg:py-28 px-6">
+          <div className="max-w-7xl mx-auto space-y-12">
+            <div className="max-w-2xl space-y-3">
+              <span className="font-mono text-xs font-extrabold uppercase tracking-widest text-[#1677FF] border-b-2 border-black pb-1">
+                Platform features
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tight">
+                EVERYTHING A TREASURY TEAM NEEDS
               </h2>
-              <p className="mt-4 text-muted-foreground">
-                No setup fees. No minimums on Starter. Move to volume pricing whenever you need it.
+              <p className="text-sm font-semibold text-gray-500 leading-relaxed">
+                Purpose-built API primitives instead of a patchwork of fragmented banking partners, local brokers, and manual ledger spreadsheets.
               </p>
             </div>
-            <div className="mt-12 grid gap-6 lg:grid-cols-3">
-              {PLANS.map((plan) => (
-                <div
-                  key={plan.name}
-                  className={
-                    plan.highlighted
-                      ? "relative rounded-2xl border border-primary/30 bg-card p-7 shadow-elevated"
-                      : "rounded-2xl border border-border bg-card p-7"
-                  }
+
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {FEATURES.map((feature) => (
+                <article
+                  key={feature.title}
+                  className="border-4 border-black bg-white p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
                 >
-                  {plan.highlighted && (
-                    <span className="absolute -top-3 left-7 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
-                      Most popular
-                    </span>
-                  )}
-                  <h3 className="text-lg font-semibold text-foreground">{plan.name}</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">{plan.description}</p>
-                  <p className="mt-6 font-display text-4xl font-extrabold text-foreground">
-                    {plan.price}
-                    <span className="ml-1 text-sm font-medium text-muted-foreground">
-                      {plan.note}
-                    </span>
-                  </p>
-                  <ul className="mt-6 space-y-3">
-                    {plan.features.map((f) => (
-                      <li key={f} className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                        <Check className="mt-0.5 size-4 shrink-0 text-primary" />
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <Button
-                    asChild
-                    variant={plan.highlighted ? "default" : "outline"}
-                    className="mt-8 w-full rounded-full"
-                  >
-                    <Link to={plan.name === "Enterprise" ? "/contact" : "/signup"}>{plan.cta}</Link>
-                  </Button>
+                  <span className="grid size-11 place-items-center bg-[#1677FF] text-white border-2 border-black shadow-[2px_2px_0px_0px_#000] mb-5">
+                    <feature.icon className="size-5" />
+                  </span>
+                  <h3 className="text-lg font-black uppercase tracking-tight">{feature.title}</h3>
+                  <p className="mt-2.5 text-xs font-semibold leading-relaxed text-gray-600">{feature.body}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Supported Currencies Strip */}
+        <section className="bg-gray-50 py-12 px-6">
+          <div className="max-w-7xl mx-auto grid lg:grid-cols-[1fr_1.8fr] gap-8 items-center">
+            <div className="space-y-2">
+              <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight">
+                SUPPORTED ASSETS
+              </h2>
+              <p className="text-xs font-semibold text-gray-500 max-w-sm leading-relaxed">
+                Fiat balances and digital currencies settle on the exact same unified ledger, so balance management is seamless.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {CURRENCIES.map((c) => (
+                <div
+                  key={c.code}
+                  className="flex items-center gap-3 border-2 border-black bg-white p-3.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                >
+                  <span className="font-mono text-xs font-black bg-[#1677FF] text-white px-2 py-0.5 border border-black">
+                    {c.code}
+                  </span>
+                  <span className="text-xs font-bold text-gray-700 truncate">{c.name}</span>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* CTA */}
-        <section className="mx-auto w-full max-w-7xl px-5 py-20 lg:px-8">
-          <div className="relative overflow-hidden rounded-3xl bg-foreground px-8 py-14 text-center sm:px-16">
-            <div className="absolute inset-0 grid-lines opacity-20" aria-hidden />
-            <div className="relative">
-              <Globe2 className="mx-auto size-8 text-background/70" />
-              <h2 className="mt-5 font-display text-3xl font-bold text-background sm:text-4xl">
-                Launch your global money stack this week
+        {/* API Docs & Code Strip */}
+        <section className="bg-white py-20 lg:py-28 px-6">
+          <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            <div className="space-y-6">
+              <span className="font-mono text-xs font-extrabold uppercase tracking-widest text-[#1677FF] border-b-2 border-black pb-1">
+                Developer tools
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tight leading-none">
+                REST API DEVELOPERS LOVE
               </h2>
-              <p className="mx-auto mt-4 max-w-xl text-background/70">
-                Create an account, complete verification and open your first wallet in minutes.
+              <p className="text-sm font-semibold text-gray-600 leading-relaxed">
+                Predictable endpoint layouts, webhook callbacks for real-time rails, idempotency keys, and full sandbox parity.
               </p>
-              <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-                <Button asChild size="lg" variant="secondary" className="rounded-full px-7">
-                  <Link to="/signup">Get Started</Link>
-                </Button>
-                <Button asChild size="lg" variant="outline" className="rounded-full px-7">
-                  <Link to="/contact">Contact sales</Link>
-                </Button>
+              
+              <ul className="space-y-3 font-semibold text-sm">
+                {[
+                  "Bearer-token authentication with scoped API keys",
+                  "Webhooks for deposits, payouts and conversions",
+                  "Sandbox environment with simulated settlement",
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-2.5">
+                    <Check className="mt-0.5 size-4 text-[#1677FF] stroke-[3px] shrink-0" />
+                    <span className="text-xs font-bold">{item}</span>
+                  </li>
+                ))}
+              </ul>
+              
+              <Link 
+                to="/developers" 
+                className="inline-block bg-white hover:bg-gray-50 text-black font-extrabold uppercase text-xs border-2 border-black py-3 px-6 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5"
+              >
+                Explore documentation
+              </Link>
+            </div>
+
+            {/* Code Block Container */}
+            <div className="border-4 border-black bg-black text-white shadow-[6px_6px_0px_0px_#1677FF] overflow-hidden">
+              <div className="flex items-center gap-2 border-b-2 border-black bg-gray-900 px-4 py-3">
+                <span className="size-2.5 rounded-full bg-red-500" />
+                <span className="size-2.5 rounded-full bg-yellow-500" />
+                <span className="size-2.5 rounded-full bg-green-500" />
+                <span className="ml-2 font-mono text-[10px] text-gray-400">POST /v1/payouts</span>
               </div>
+              <pre className="overflow-x-auto p-5 font-mono text-xs leading-relaxed text-gray-200">
+                {CODE_SAMPLE}
+              </pre>
             </div>
           </div>
         </section>
 
-        {/* Trust strip */}
-        <section className="mx-auto w-full max-w-7xl px-5 pb-20 lg:px-8">
-          <div className="grid gap-4 sm:grid-cols-3">
+        {/* Pricing Section */}
+        <section className="bg-gray-50 py-20 lg:py-28 px-6">
+          <div className="max-w-7xl mx-auto space-y-12">
+            <div className="max-w-2xl space-y-3 text-left">
+              <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tight">
+                PRICING SCALED BY VOLUME
+              </h2>
+              <p className="text-sm font-semibold text-gray-500 leading-relaxed">
+                Zero setup fees. Zero minimums on Starter. Transition to custom volume pricing when you scale.
+              </p>
+            </div>
+            
+            <div className="grid gap-6 lg:grid-cols-3">
+              {PLANS.map((plan) => (
+                <div
+                  key={plan.name}
+                  className={`border-4 border-black p-7 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between relative ${
+                    plan.highlighted ? "bg-white border-[#1677FF] shadow-[4px_4px_0px_0px_#000]" : "bg-white"
+                  }`}
+                >
+                  {plan.highlighted && (
+                    <span className="absolute -top-3.5 left-6 bg-[#1677FF] text-white px-2.5 py-0.5 border border-black font-mono text-[9px] font-extrabold uppercase tracking-wider">
+                      Most popular
+                    </span>
+                  )}
+                  
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-black uppercase tracking-tight">{plan.name}</h3>
+                    <p className="text-xs font-semibold text-gray-500 leading-relaxed">{plan.description}</p>
+                    <p className="font-mono text-4xl font-black text-black mt-2">
+                      {plan.price}
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">
+                        / {plan.note}
+                      </span>
+                    </p>
+                    <ul className="space-y-2.5 border-t border-gray-200 pt-4">
+                      {plan.features.map((f) => (
+                        <li key={f} className="flex items-start gap-2 text-xs font-bold text-gray-600">
+                          <Check className="mt-0.5 size-3.5 text-[#1677FF] stroke-[3px] shrink-0" />
+                          <span>{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <Link
+                    to={plan.name === "Enterprise" ? "/contact" : "/signup"}
+                    className={`w-full font-extrabold uppercase text-xs py-3 text-center border-2 border-black mt-8 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 transition-all ${
+                      plan.highlighted ? "bg-[#1677FF] text-white" : "bg-white text-black"
+                    }`}
+                  >
+                    {plan.cta}
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Call to Action Section */}
+        <section className="bg-white py-20 px-6">
+          <div className="max-w-7xl mx-auto border-4 border-black p-8 sm:p-14 bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-center space-y-6 relative overflow-hidden">
+            
+            <div className="space-y-3 relative z-10">
+              <Globe2 className="mx-auto size-9 text-[#1677FF]" />
+              <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tight">
+                LAUNCH YOUR GLOBAL PAYMENT STACK
+              </h2>
+              <p className="mx-auto max-w-xl text-xs sm:text-sm font-semibold text-gray-500 leading-relaxed">
+                Create a sandbox developer workspace, provision virtual accounts, and test your payout endpoints within minutes.
+              </p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row justify-center gap-4 relative z-10">
+              <Link
+                to="/signup"
+                className="bg-[#1677FF] hover:bg-[#1677FF]/90 text-white font-extrabold uppercase text-xs border-2 border-black py-3 px-6 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5"
+              >
+                Get Started
+              </Link>
+              <Link
+                to="/contact"
+                className="bg-white hover:bg-gray-50 text-black font-extrabold uppercase text-xs border-2 border-black py-3 px-6 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5"
+              >
+                Contact sales
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Security Compliance Strip */}
+        <section className="bg-white py-12 px-6">
+          <div className="max-w-7xl mx-auto grid gap-6 sm:grid-cols-3">
             {[
-              { icon: ShieldCheck, label: "SOC 2 Type II aligned controls" },
-              { icon: Building2, label: "Regulated banking partners" },
-              { icon: Banknote, label: "Segregated client funds" },
+              { icon: ShieldCheck, label: "SOC 2 Type II controls aligned" },
+              { icon: Building2, label: "Regulated banking providers" },
+              { icon: Banknote, label: "Segregated client accounts" },
             ].map((item) => (
               <div
                 key={item.label}
-                className="flex items-center gap-3 rounded-xl border border-border bg-card px-5 py-4"
+                className="flex items-center gap-3 border-2 border-black bg-white px-5 py-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
               >
-                <item.icon className="size-5 text-primary" />
-                <span className="text-sm text-muted-foreground">{item.label}</span>
+                <item.icon className="size-5 text-[#1677FF] shrink-0" />
+                <span className="text-xs font-bold text-gray-700 uppercase tracking-wide">{item.label}</span>
               </div>
             ))}
           </div>
         </section>
+
       </main>
 
       <SiteFooter />

@@ -5,16 +5,11 @@ import { MarketingPage } from "@/components/marketing/marketing-page";
 export const Route = createFileRoute("/solutions")({
   head: () => ({
     meta: [
-      { title: "Solutions for Marketplaces, Platforms & Institutions | Nexus Pay" },
+      { title: "Solutions for Marketplaces, Platforms & Institutions | GlobalPay" },
       {
         name: "description",
         content:
-          "How marketplaces, global platforms, payroll providers and institutions use Nexus Pay for cross-border money movement.",
-      },
-      { property: "og:title", content: "Nexus Pay Solutions" },
-      {
-        property: "og:description",
-        content: "Cross-border money movement for marketplaces, platforms and institutions.",
+          "How marketplaces, global platforms, payroll providers and institutions use GlobalPay for cross-border money movement.",
       },
     ],
   }),
@@ -55,16 +50,19 @@ function SolutionsPage() {
       title="Built for the businesses that move money for others"
       intro="The same infrastructure adapts to very different flows — collection-heavy marketplaces, payout-heavy platforms and treasury-heavy institutions."
     >
-      <div className="grid gap-5 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2">
         {SOLUTIONS.map((s) => (
-          <article key={s.name} className="rounded-2xl border border-border bg-card p-7">
-            <span className="grid size-11 place-items-center rounded-xl bg-primary-soft text-primary">
+          <article 
+            key={s.name} 
+            className="border-4 border-black bg-white p-7 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
+          >
+            <span className="grid size-11 place-items-center bg-[#1677FF] text-white border-2 border-black shadow-[2px_2px_0px_0px_#000] mb-5">
               <s.icon className="size-5" />
             </span>
-            <h2 className="mt-5 text-xl font-semibold text-foreground">{s.name}</h2>
-            <p className="mt-2.5 text-sm leading-relaxed text-muted-foreground">{s.body}</p>
-            <p className="mt-5 border-t border-border pt-4 text-sm font-medium text-primary">
-              {s.outcome}
+            <h2 className="text-xl font-black uppercase tracking-tight">{s.name}</h2>
+            <p className="mt-2.5 text-xs font-semibold leading-relaxed text-gray-600">{s.body}</p>
+            <p className="mt-5 border-t border-gray-200 pt-4 font-mono text-xs font-extrabold uppercase text-[#1677FF] tracking-wider">
+              → {s.outcome}
             </p>
           </article>
         ))}

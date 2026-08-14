@@ -1,21 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Bitcoin, Landmark, Repeat, Send, Wallet } from "lucide-react";
 import { MarketingPage } from "@/components/marketing/marketing-page";
-import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/products")({
   head: () => ({
     meta: [
-      { title: "Products — Wallets, Virtual Accounts & Payouts | Nexus Pay" },
+      { title: "Products — Wallets, Virtual Accounts & Payouts | GlobalPay" },
       {
         name: "description",
         content:
           "Fiat wallets, crypto wallets, virtual bank accounts, currency exchange and international payouts in one platform.",
-      },
-      { property: "og:title", content: "Nexus Pay Products" },
-      {
-        property: "og:description",
-        content: "Wallets, virtual accounts, FX and payouts on one hybrid payment platform.",
       },
     ],
   }),
@@ -62,19 +56,22 @@ function ProductsPage() {
       title="Hybrid money infrastructure, componentised"
       intro="Use one module or the whole stack. Every product shares the same ledger, the same compliance layer and the same API surface."
     >
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         {PRODUCTS.map((product) => (
-          <article key={product.name} className="rounded-2xl glass-tile p-7">
-            <span className="grid size-11 place-items-center rounded-xl bg-primary-soft text-primary">
+          <article 
+            key={product.name} 
+            className="border-4 border-black bg-white p-7 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 transition-all"
+          >
+            <span className="grid size-11 place-items-center bg-[#1677FF] text-white border-2 border-black shadow-[2px_2px_0px_0px_#000] mb-5">
               <product.icon className="size-5" />
             </span>
-            <h2 className="mt-5 text-xl font-semibold text-foreground">{product.name}</h2>
-            <p className="mt-2.5 text-sm leading-relaxed text-muted-foreground">{product.body}</p>
+            <h2 className="text-xl font-black uppercase tracking-tight">{product.name}</h2>
+            <p className="mt-2.5 text-xs font-semibold leading-relaxed text-gray-600">{product.body}</p>
             <ul className="mt-5 flex flex-wrap gap-2">
               {product.points.map((p) => (
                 <li
                   key={p}
-                  className="rounded-full border border-border bg-card px-3 py-1 text-xs text-muted-foreground"
+                  className="bg-gray-100 border-2 border-black px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-wider shadow-[1px_1px_0px_0px_#000]"
                 >
                   {p}
                 </li>
@@ -84,18 +81,22 @@ function ProductsPage() {
         ))}
       </div>
 
-      <div className="mt-12 flex flex-col items-start gap-4 rounded-2xl border border-border bg-secondary/40 p-8 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="font-display text-xl font-bold text-foreground">
+      {/* CTA Box */}
+      <div className="mt-12 flex flex-col items-start gap-4 border-4 border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <h2 className="text-lg font-black uppercase tracking-tight">
             Open your first wallet today
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="text-xs font-semibold text-gray-500">
             Verification takes minutes. No setup fee on Starter.
           </p>
         </div>
-        <Button asChild className="rounded-full px-6">
-          <Link to="/signup">Get Started</Link>
-        </Button>
+        <Link 
+          to="/signup"
+          className="bg-[#1677FF] hover:bg-[#1677FF]/90 text-white font-extrabold uppercase text-xs border-2 border-black py-3 px-6 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 transition-all text-center"
+        >
+          Get Started
+        </Link>
       </div>
     </MarketingPage>
   );
