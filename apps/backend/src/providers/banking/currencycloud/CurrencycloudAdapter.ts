@@ -4,9 +4,10 @@ import axios, { AxiosInstance } from "axios";
 export class CurrencycloudAdapter implements IBankingProvider {
   private client: AxiosInstance;
   private authToken: string | null = null;
+  private tokenExpiresAt: number = 0;
 
   constructor() {
-    const baseUrl = process.env.CURRENCYCLOUD_API_BASE_URL || "https://devapi.currencycloud.com";
+    const baseUrl = process.env['CURRENCYCLOUD_API_BASE_URL'] || "https://devapi.currencycloud.com";
     this.client = axios.create({
       baseURL: baseUrl,
       timeout: 15000,
@@ -14,9 +15,12 @@ export class CurrencycloudAdapter implements IBankingProvider {
   }
 
   private async authenticate() {
-    if (this.authToken) return;
-    const loginId = process.env.CURRENCYCLOUD_LOGIN_ID;
-    const apiKey = process.env.CURRENCYCLOUD_API_KEY;
+    // Refresh if no token or within 5 minutes of expiry
+    if (this.authToken && Date.now() < this.tokenExpiresAt) return;
+
+    this.authToken = null;
+    const loginId = process.env['CURRENCYCLOUD_LOGIN_ID'];
+    const apiKey = process.env['CURRENCYCLOUD_API_KEY'];
 
     if (!loginId || !apiKey) {
       throw new Error("Currencycloud configuration missing.");
@@ -28,6 +32,7 @@ export class CurrencycloudAdapter implements IBankingProvider {
     });
 
     this.authToken = response.data.auth_token;
+    this.tokenExpiresAt = Date.now() + 25 * 60 * 1000; // 25 minutes
     this.client.defaults.headers.common["X-Auth-Token"] = this.authToken;
   }
 
