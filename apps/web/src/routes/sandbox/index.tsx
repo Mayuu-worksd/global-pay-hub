@@ -115,7 +115,7 @@ function SandboxConsolePage() {
   const getDefaultBody = (endpoint: string) => {
     if (endpoint === "/v1/customers") {
       return JSON.stringify({
-        name: "Acme Corporates Ltd",
+        name: "Acme Finance",
         email: "finance@acme.com",
         address: {
           street: "742 Evergreen Terrace",

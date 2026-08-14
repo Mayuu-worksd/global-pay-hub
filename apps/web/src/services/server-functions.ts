@@ -502,6 +502,10 @@ export const serverExecuteSandboxApi = createServerFn({ method: "POST" })
         const provider = process.env['BANKING_PROVIDER'] || "currencycloud";
         let res: { id: string; status: string };
 
+        // Strip company signifiers CurrencyCloud rejects
+        const sanitizeName = (n: string) =>
+          n.replace(/\b(ltd|limited|llc|inc|corp|corporation|co\.|company|corporates?|group|holdings?|plc|gmbh|bv|sa|sas|srl)\b\.?/gi, "").replace(/\s{2,}/g, " ").trim() || n;
+
         if (provider === "unit") {
           res = await unitService.createApplication(userId, {
             ...mappedData,
@@ -512,7 +516,7 @@ export const serverExecuteSandboxApi = createServerFn({ method: "POST" })
             id_document_number: "000000000",
           }).then(r => ({ id: r.id, status: r.status }));
         } else {
-          const ccAcc = await currencycloudService.createSubAccount(userId, body.name || "Test Client");
+          const ccAcc = await currencycloudService.createSubAccount(userId, sanitizeName(body.name || "Test Client"));
           res = { id: ccAcc.id, status: "active" };
         }
 
