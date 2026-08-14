@@ -25,7 +25,7 @@ export async function getAdminData(req: AuthenticatedRequest, res: Response) {
       supabaseAdmin.from("crypto_wallets").select("*"),
       supabaseAdmin.from("transactions").select("*").order("created_at", { ascending: false }),
       supabaseAdmin.from("merchant_api_keys").select("*"),
-      supabaseAdmin.from("webhooks").select("*").order("created_at", { ascending: false }).limit(100),
+      supabaseAdmin.from("webhook_events").select("*").order("created_at", { ascending: false }).limit(100),
       supabaseAdmin.from("audit_logs").select("*").order("created_at", { ascending: false }),
       supabaseAdmin.from("kyc").select("*").order("created_at", { ascending: false }),
     ]);
@@ -167,7 +167,7 @@ export async function retryWebhook(req: AuthenticatedRequest, res: Response) {
     }
 
     const { data: record, error } = await supabaseAdmin
-      .from("webhooks")
+      .from("webhook_events")
       .select("*")
       .eq("id", webhookId)
       .maybeSingle();
@@ -219,7 +219,7 @@ export async function retryWebhook(req: AuthenticatedRequest, res: Response) {
     const finalStatus = success ? "processed" : "failed";
     
     await supabaseAdmin
-      .from("webhooks")
+      .from("webhook_events")
       .update({
         status: finalStatus,
         processed_at: new Date().toISOString()
