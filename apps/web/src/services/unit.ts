@@ -82,12 +82,11 @@ export const unitService = {
           email: data.email,
           nationality: data.nationality,
           occupation: "ArchitectOrEngineer",
-          documents: [
-            {
-              type: data.id_document_type,
-              number: data.id_document_number,
-            }
-          ]
+          // Unit does not accept a documents array in individualApplication.
+          // Document verification is handled via Unit's hosted flow after application creation.
+          ssn: data.id_document_number
+            ? data.id_document_number.replace(/\D/g, "").padStart(9, "0").slice(0, 9)
+            : undefined,
         }
       }
     };
