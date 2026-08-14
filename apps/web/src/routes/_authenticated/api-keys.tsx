@@ -46,6 +46,19 @@ function ApiKeysPage() {
             ? "Live keys are issued once your production banking partner is connected. Keys are shown once at creation and stored only as a hash."
             : "Complete identity verification before requesting API credentials. Regulated rails require an approved profile on file."}
         </p>
+        {!approved && (
+          <div className="mt-5 p-4 border-2 border-[#1677FF] bg-[#1677FF]/5 max-w-xl">
+            <p className="text-xs font-bold text-gray-700 leading-relaxed">
+              💡 Testing your integration? You can access the separate GlobalPay Sandbox Console to generate sandbox test keys (gph_test_...) and test APIs immediately.
+            </p>
+            <a 
+              href="/sandbox"
+              className="inline-block mt-3 bg-[#1677FF] hover:bg-[#1677FF]/90 text-white font-extrabold uppercase text-[10px] px-4 py-2 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 transition-all"
+            >
+              Go to Sandbox Console
+            </a>
+          </div>
+        )}
       </div>
 
       <section>
