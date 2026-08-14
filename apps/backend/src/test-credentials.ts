@@ -114,6 +114,42 @@ async function testUnit() {
   }
 }
 
+async function testBridge() {
+  const apiKey = process.env.BRIDGE_API_KEY;
+  if (!apiKey) {
+    console.log("❌ Bridge: Credentials missing in .env");
+    return;
+  }
+  try {
+    const environment = process.env.BRIDGE_ENVIRONMENT || "sandbox";
+    const baseUrl = environment === "production" ? "https://api.bridge.xyz" : "https://api.sandbox.bridge.xyz";
+    const res = await axios.get(`${baseUrl}/v0/customers`, {
+      headers: { "Api-Key": apiKey },
+      params: { limit: 1 }
+    });
+    console.log(`✅ Bridge: PASS (Connection successful: status ${res.status})`);
+  } catch (err: any) {
+    console.log(`❌ Bridge: FAIL (${err.response?.data?.message || err.message})`);
+  }
+}
+
+async function testGrid() {
+  const apiKey = process.env.GRID_API_KEY;
+  if (!apiKey) {
+    console.log("❌ Grid: Credentials missing in .env");
+    return;
+  }
+  try {
+    const baseUrl = "https://grid.squads.xyz/api";
+    const res = await axios.get(`${baseUrl}/grid/v1/accounts/balances`, {
+      headers: { "Authorization": `Bearer ${apiKey}` }
+    });
+    console.log(`✅ Grid: PASS (Connection successful: status ${res.status})`);
+  } catch (err: any) {
+    console.log(`❌ Grid: FAIL (${err.response?.data?.message || err.message})`);
+  }
+}
+
 async function runAll() {
   console.log("🚀 Starting credentials connectivity check...\n");
   await testCurrencycloud();
@@ -122,6 +158,8 @@ async function runAll() {
   await testTronGrid();
   await testSumsub();
   await testUnit();
+  await testBridge();
+  await testGrid();
   console.log("\n🏁 Done.");
 }
 
