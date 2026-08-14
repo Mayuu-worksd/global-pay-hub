@@ -10,7 +10,7 @@ function randomHex(length: number) {
 }
 
 async function tatumGenerateAddress(asset: string): Promise<string> {
-  const apiKey = process.env.TATUM_API_KEY || "";
+  const apiKey = process.env['TATUM_API_KEY'] || "";
   const client = axios.create({ baseURL: "https://api.tatum.io/v3", headers: { "x-api-key": apiKey } });
   try {
     if (asset === "BTC") {
@@ -28,6 +28,7 @@ async function tatumGenerateAddress(asset: string): Promise<string> {
       const addr = await client.get(`/tron/address/${wallet.data.xpub}/0`);
       return addr.data.address;
     }
+    throw new Error(`Unsupported asset for address generation: ${asset}`);
   } catch (err: any) {
     throw new Error(`Tatum address generation failed for ${asset}: ${err.message}`);
   }
@@ -42,19 +43,19 @@ export const serverSubmitKyc = createServerFn({ method: "POST" })
 
     // 1. Trigger Unit application creation
     const app = await unitService.createApplication(userId, {
-      first_name: String(values.first_name || ""),
-      last_name: String(values.last_name || ""),
-      date_of_birth: String(values.date_of_birth || ""),
-      nationality: String(values.nationality || ""),
-      phone: String(values.phone || ""),
-      address_line1: String(values.address_line1 || ""),
-      city: String(values.city || ""),
-      state: String(values.state || ""),
-      postal_code: String(values.postal_code || ""),
-      country: String(values.country || ""),
-      email: String(values.email || context.claims.email || ""),
-      id_document_type: String(values.id_document_type || "Passport"),
-      id_document_number: String(values.id_document_number || ""),
+      first_name: String(values['first_name'] || ""),
+      last_name: String(values['last_name'] || ""),
+      date_of_birth: String(values['date_of_birth'] || ""),
+      nationality: String(values['nationality'] || ""),
+      phone: String(values['phone'] || ""),
+      address_line1: String(values['address_line1'] || ""),
+      city: String(values['city'] || ""),
+      state: String(values['state'] || ""),
+      postal_code: String(values['postal_code'] || ""),
+      country: String(values['country'] || ""),
+      email: String(values['email'] || context.claims.email || ""),
+      id_document_type: String(values['id_document_type'] || "Passport"),
+      id_document_number: String(values['id_document_number'] || ""),
     });
 
     const isApproved = app.status === "Approved";
@@ -72,13 +73,13 @@ export const serverSubmitKyc = createServerFn({ method: "POST" })
     if (kycError) throw kycError;
 
     // 3. Update profile details
-    const fullName = `${values.first_name || ""} ${values.last_name || ""}`.trim();
+    const fullName = `${values['first_name'] || ""} ${values['last_name'] || ""}`.trim();
     const { error: profileError } = await supabaseAdmin
       .from("profiles")
       .update({
         full_name: fullName || null,
-        phone: String(values.phone || ""),
-        country: String(values.country || ""),
+        phone: String(values['phone'] || ""),
+        country: String(values['country'] || ""),
         unit_application_id: app.id,
         unit_customer_id: app.customerId || null,
         profile_completed: true,
@@ -172,7 +173,7 @@ export const serverCreateVirtualAccount = createServerFn({ method: "POST" })
         const names = (profile.full_name || "User Name").split(" ");
         const first = names[0] || "User";
         const last = names.slice(1).join(" ") || "User";
-        const ccCont = await currencycloudService.createContact(ccAccId, first, last, profile.email || `${userId}@globalpay.com`);
+        const ccCont = await currencycloudService.createContact(ccAccId!, first, last, profile.email || `${userId}@globalpay.com`);
         ccContId = ccCont.id;
 
         await supabaseAdmin
@@ -324,24 +325,367 @@ export const serverSaveBeneficiary = createServerFn({ method: "POST" })
 
     // Register with Currencycloud
     let ccBenId = "";
-    const ben = await currencycloudService.createBeneficiary({
-      name: String(values.name || ""),
-      currency: String(values.currency || "USD"),
-      country: String(values.country || "US"),
-      iban: values.iban ? String(values.iban) : undefined,
-      account_number: values.account_number ? String(values.account_number) : undefined,
-      routing_number: values.routing_number ? String(values.routing_number) : undefined,
-      swift_bic: values.swift_bic ? String(values.swift_bic) : undefined,
-    });
+    const beneficiaryData: {
+      name: string;
+      currency: string;
+      country: string;
+      iban?: string;
+      account_number?: string;
+      routing_number?: string;
+      swift_bic?: string;
+    } = {
+      name: String(values['name'] || ""),
+      currency: String(values['currency'] || "USD"),
+      country: String(values['country'] || "US"),
+    };
+
+    if (values['iban']) beneficiaryData.iban = String(values['iban']);
+    if (values['account_number']) beneficiaryData.account_number = String(values['account_number']);
+    if (values['routing_number']) beneficiaryData.routing_number = String(values['routing_number']);
+    if (values['swift_bic']) beneficiaryData.swift_bic = String(values['swift_bic']);
+
+    const ben = await currencycloudService.createBeneficiary(beneficiaryData);
     ccBenId = ben.id;
 
     // Insert locally
     const { error } = await supabaseAdmin.from("beneficiaries").insert({
-      ...values,
       user_id: userId,
-      swift_bic: ccBenId, // Save reference or Swift
+      name: String(values['name'] || ""),
+      currency: String(values['currency'] || "USD"),
+      country: String(values['country'] || "US"),
+      iban: values['iban'] ? String(values['iban']) : null,
+      account_number: values['account_number'] ? String(values['account_number']) : null,
+      routing_number: values['routing_number'] ? String(values['routing_number']) : null,
+      bank_name: values['bank_name'] ? String(values['bank_name']) : null,
+      swift_bic: ccBenId,
     });
     if (error) throw error;
 
     return { ok: true };
+  });
+
+export const serverCreateSandboxApiKey = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((name: string) => name)
+  .handler(async ({ data: name, context }) => {
+    const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const crypto = await import("crypto");
+
+    const prefix = "gph_test_";
+    const secret = crypto.randomBytes(24).toString("hex");
+    const plainTextKey = `${prefix}${secret}`;
+    const hash = crypto.createHash("sha256").update(plainTextKey).digest("hex");
+
+    const { data, error } = await (supabaseAdmin as any).from("merchant_api_keys").insert({
+      merchant_id: userId,
+      name,
+      api_key_prefix: prefix,
+      api_key_hash: hash,
+      is_live: false,
+      is_active: true,
+    }).select().single();
+
+    if (error) throw new Error(error.message);
+
+    return {
+      id: data.id,
+      name: data.name,
+      apiKey: plainTextKey,
+      is_live: data.is_live,
+      is_active: data.is_active,
+      created_at: data.created_at,
+    };
+  });
+
+export const serverListSandboxApiKeys = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data, error } = await (supabaseAdmin as any)
+      .from("merchant_api_keys")
+      .select("id, name, api_key_prefix, is_live, is_active, created_at")
+      .eq("merchant_id", userId)
+      .eq("is_live", false);
+
+    if (error) throw new Error(error.message);
+    return data;
+  });
+
+export const serverRevokeSandboxApiKey = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((id: string) => id)
+  .handler(async ({ data: id, context }) => {
+    const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { error } = await (supabaseAdmin as any)
+      .from("merchant_api_keys")
+      .update({ is_active: false })
+      .eq("id", id)
+      .eq("merchant_id", userId);
+
+    if (error) throw new Error(error.message);
+    return { success: true };
+  });
+
+export const serverGetSandboxLogs = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data, error } = await (supabaseAdmin as any)
+      .from("webhook_events")
+      .select("id, event_type, payload, endpoint_url, status, attempts, created_at")
+      .eq("merchant_id", userId)
+      .order("created_at", { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return data;
+  });
+
+export const serverExecuteSandboxApi = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((data: { method: string; endpoint: string; body: any }) => data)
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { method, endpoint, body } = data;
+
+    let responsePayload: any = {};
+    const randomId = () => Math.random().toString(36).substring(2, 15);
+
+    try {
+      if (endpoint === "/v1/customers") {
+        const first_name = body.name ? body.name.split(" ")[0] : "Test";
+        const last_name = body.name ? body.name.split(" ").slice(1).join(" ") || "Client" : "Customer";
+        const mappedData = {
+          first_name,
+          last_name,
+          email: body.email || "test@example.com",
+          address_line1: body.address?.street || "123 Main St",
+          city: body.address?.city || "New York",
+          state: body.address?.state || "NY",
+          postal_code: body.address?.postal_code || "10001",
+          country: body.address?.country || "US",
+        };
+
+        const provider = process.env['BANKING_PROVIDER'] || "currencycloud";
+        let res: { id: string; status: string };
+
+        if (provider === "unit") {
+          res = await unitService.createApplication(userId, {
+            ...mappedData,
+            date_of_birth: "1990-01-01",
+            nationality: "US",
+            phone: "5550000000",
+            id_document_type: "Passport",
+            id_document_number: "000000000",
+          }).then(r => ({ id: r.id, status: r.status }));
+        } else {
+          const ccAcc = await currencycloudService.createSubAccount(userId, body.name || "Test Client");
+          res = { id: ccAcc.id, status: "active" };
+        }
+
+        responsePayload = {
+          id: res.id,
+          name: body.name || "Test Client Corp",
+          email: body.email || "client@example.com",
+          status: res.status,
+          provider,
+          created_at: new Date().toISOString(),
+        };
+
+      } else if (endpoint === "/v1/virtual-accounts") {
+        if (!body.customer_id) throw new Error("Missing required field: customer_id");
+
+        const provider = process.env['BANKING_PROVIDER'] || "currencycloud";
+        let res: any;
+
+        if (provider === "unit") {
+          res = await unitService.createAccount(body.customer_id, body.currency || "USD");
+        } else {
+          res = await currencycloudService.createVirtualAccount(body.customer_id, body.currency || "USD");
+        }
+
+        responsePayload = {
+          id: `va_test_${randomId()}`,
+          customer_id: body.customer_id,
+          currency: body.currency || "USD",
+          account_name: body.account_name || "Collections Account",
+          account_number: res.accountNumber || res.iban || "N/A",
+          routing_number: res.routingNumber || res.swift_bic || "N/A",
+          bank_name: res.bankName || "Partner Bank",
+          bank_address: res.bankAddress || "London, UK",
+          status: "active",
+          provider,
+        };
+
+        await (supabaseAdmin as any).from("virtual_accounts").insert({
+          user_id: userId,
+          customer_id: body.customer_id,
+          account_number: res.accountNumber || res.iban || "N/A",
+          routing_number: res.routingNumber || res.swift_bic || "N/A",
+          bank_name: res.bankName || "Partner Bank",
+          currency: body.currency || "USD",
+          status: "active",
+        });
+
+      } else if (endpoint === "/v1/wallets") {
+        const currency = (body.currency || "USD").toUpperCase();
+        const type = body.type || "fiat";
+
+        if (type === "crypto") {
+          if (!process.env['TATUM_API_KEY']) {
+            responsePayload = {
+              error: "CREDENTIAL_REQUIRED",
+              message: "Tatum API key is missing. Configure TATUM_API_KEY in your env file.",
+              status: "failed",
+            };
+          } else {
+            const address = await tatumGenerateAddress(currency);
+            responsePayload = {
+              id: address,
+              currency,
+              type,
+              balance: 0.00,
+              available_balance: 0.00,
+              deposit_address: address,
+              status: "active",
+              provider: "tatum",
+            };
+            await (supabaseAdmin as any).from("crypto_wallets").insert({
+              user_id: userId,
+              asset: currency,
+              network: currency === "USDT" ? "TRON" : currency === "ETH" ? "ETH" : "BTC",
+              deposit_address: address,
+              balance: 0,
+              is_active: true,
+            });
+          }
+        } else {
+          responsePayload = {
+            id: `wal_fiat_${randomId()}`,
+            currency,
+            type,
+            balance: 0.00,
+            available_balance: 0.00,
+            status: "active",
+            provider: "database",
+          };
+          await (supabaseAdmin as any).from("fiat_wallets").insert({
+            user_id: userId,
+            currency,
+            balance: 0,
+            is_active: true,
+            label: "Sandbox Wallet",
+          });
+        }
+
+      } else if (endpoint === "/v1/payments" || endpoint === "/v1/payouts") {
+        const amount = Number(body.amount) || 100.0;
+        const currency = (body.currency || "USD").toUpperCase();
+        const reference = body.reference || `REF-${Date.now()}`;
+        const provider = process.env['BANKING_PROVIDER'] || "currencycloud";
+
+        // Only call real payout if a valid beneficiary destination is provided
+        let paymentId = `pay_test_${randomId()}`;
+        let paymentStatus = "completed";
+
+        if (body.destination) {
+          const payout = await currencycloudService.createPayout({
+            beneficiaryId: body.destination,
+            currency,
+            amount,
+            reference,
+          });
+          paymentId = payout.id;
+          paymentStatus = payout.status;
+        }
+
+        responsePayload = {
+          id: paymentId,
+          amount,
+          currency,
+          destination: body.destination || "sandbox_internal",
+          reference,
+          status: paymentStatus,
+          provider,
+          created_at: new Date().toISOString(),
+        };
+
+        await (supabaseAdmin as any).from("transactions").insert({
+          user_id: userId,
+          type: "withdrawal",
+          amount,
+          currency,
+          status: "completed",
+          reference,
+          provider_tx_id: paymentId,
+        });
+
+      } else if (endpoint === "/v1/conversions" || endpoint === "/v1/exchange") {
+        const from = (body.from || "USD").toUpperCase();
+        const to = (body.to || "EUR").toUpperCase();
+        const amount = Number(body.amount) || 100.0;
+
+        // Use real Currencycloud FX rate
+        let rate = from === "USD" ? 0.92 : 1.09;
+        let convertedAmount = amount * rate;
+
+        try {
+          const fx = await currencycloudService.createExchange(from, to, amount);
+          rate = fx.rate;
+          convertedAmount = fx.converted;
+        } catch {
+          // Fall back to simulated rate if CC call fails
+        }
+
+        responsePayload = {
+          id: `conv_${randomId()}`,
+          from,
+          to,
+          amount,
+          converted_amount: convertedAmount,
+          rate,
+          status: "completed",
+          provider: "currencycloud",
+          created_at: new Date().toISOString(),
+        };
+
+      } else {
+        responsePayload = {
+          message: "Endpoint processed successfully in Sandbox",
+          ok: true,
+          input: body,
+        };
+      }
+    } catch (err: any) {
+      console.error("[SandboxExecutionError]", err);
+      responsePayload = {
+        error: "PROVIDER_ERROR",
+        message: err.message || "Failed to process sandbox query via provider API.",
+        status: "failed",
+      };
+    }
+
+    // Log the API call inside webhook_events table
+    const { error: logErr } = await (supabaseAdmin as any).from("webhook_events").insert({
+      merchant_id: userId,
+      event_type: `api.log:${method} ${endpoint}`,
+      payload: {
+        request: body,
+        response: responsePayload,
+      },
+      endpoint_url: "https://api.sandbox.globalpay.io",
+      status: responsePayload.error ? "400" : "200",
+      attempts: Math.floor(40 + Math.random() * 80),
+    });
+
+    if (logErr) throw new Error(logErr.message);
+
+    return responsePayload;
   });
