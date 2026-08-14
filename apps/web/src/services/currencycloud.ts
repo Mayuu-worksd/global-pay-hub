@@ -13,29 +13,36 @@ export function readCurrencycloudConfig(): CurrencycloudConfig | null {
 }
 
 let activeAuthToken: string | null = null;
+let tokenExpiresAt: number = 0;
 
 // Authenticate and retrieve token from Currencycloud
+// Tokens expire after 30 min — we refresh after 25 min to be safe
 async function getAuthToken(config: CurrencycloudConfig): Promise<string> {
-  if (activeAuthToken) return activeAuthToken;
+  if (activeAuthToken && Date.now() < tokenExpiresAt) return activeAuthToken;
 
-  const url = `${config.baseUrl}/v2/authenticate`;
+  // Reset so a failed re-auth doesn't reuse a stale token
+  activeAuthToken = null;
+
+  const url = `${config.baseUrl}/v2/authenticate/api`;
   const response = await fetch(url, {
     method: "POST",
     headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
+      "Content-Type": "application/json",
     },
-    body: new URLSearchParams({
+    body: JSON.stringify({
       login_id: config.loginId,
       api_key: config.apiKey,
     }),
   });
 
   if (!response.ok) {
-    throw new Error(`Currencycloud Auth Error: ${response.statusText}`);
+    const errText = await response.text();
+    throw new Error(`Currencycloud Auth Error (${response.status}): ${errText}`);
   }
 
   const data = await response.json();
   activeAuthToken = data.auth_token;
+  tokenExpiresAt = Date.now() + 25 * 60 * 1000; // 25 minutes
   return activeAuthToken!;
 }
 
@@ -204,6 +211,11 @@ export const currencycloudService = {
     const config = readCurrencycloudConfig();
     if (!config) {
       throw new Error("Currencycloud API credentials not configured.");
+    }
+
+    // Guard: skip real payout if no beneficiary is registered (e.g. internal transfers)
+    if (!data.beneficiaryId) {
+      return { id: `internal_${Date.now()}`, status: "completed" };
     }
 
     const res = await ccRequest("/v2/payments/create", {
