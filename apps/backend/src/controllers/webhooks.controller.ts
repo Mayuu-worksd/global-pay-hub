@@ -6,6 +6,8 @@ import { CurrencycloudAdapter } from "../providers/banking/currencycloud/Currenc
 import { TatumAdapter } from "../providers/crypto/tatum/TatumAdapter";
 import { NotificationService } from "../services/NotificationService";
 import { ProvisioningService } from "../services/ProvisioningService";
+import { BridgeAdapter } from "../providers/stablecoin/bridge/BridgeAdapter";
+import { GridAdapter } from "../providers/stablecoin/grid/GridAdapter";
 
 export async function handleUnitWebhook(req: Request, res: Response) {
   try {
@@ -336,3 +338,156 @@ export async function handleSumsubWebhook(req: Request, res: Response) {
     return res.status(500).json({ error: err.message });
   }
 }
+
+export async function handleBridgeWebhook(req: Request, res: Response) {
+  try {
+    const event = req.body;
+    logger.info(`Received Bridge Webhook Event: ${event?.type || "unknown"}`);
+
+    const adapter = new BridgeAdapter();
+    const parsed = await adapter.parseWebhook(req.headers, event);
+
+    await supabaseAdmin.from("webhooks").insert({
+      provider: "bridge",
+      event_type: parsed.eventType,
+      payload: event,
+      status: "processed",
+      processed_at: new Date().toISOString(),
+    });
+
+    return res.status(200).json({ received: true });
+  } catch (err: any) {
+    logger.error(`Bridge webhook processing failed: ${err.message}`);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+export async function handleGridWebhook(req: Request, res: Response) {
+  try {
+    const event = req.body;
+    logger.info(`Received Grid Webhook Event: ${event?.type || "unknown"}`);
+
+    const adapter = new GridAdapter();
+    const parsed = await adapter.parseWebhook(req.headers, event);
+
+    await supabaseAdmin.from("webhooks").insert({
+      provider: "grid",
+      event_type: parsed.eventType,
+      payload: event,
+      status: "processed",
+      processed_at: new Date().toISOString(),
+    });
+
+    return res.status(200).json({ received: true });
+  } catch (err: any) {
+    logger.error(`Grid webhook processing failed: ${err.message}`);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
+export async function handleBankingCircleWebhook(req: Request, res: Response) {
+  try {
+    const event = req.body;
+    logger.info(`Received Banking Circle Webhook Event: ${event?.type || "unknown"}`);
+
+    // Log webhook event in database
+    await supabaseAdmin.from("webhooks").insert({
+      provider: "banking_circle",
+      event_type: event?.type || "unknown",
+      payload: event,
+      status: "processed",
+      processed_at: new Date().toISOString(),
+    });
+
+    const eventType = event?.type || "";
+    // Handle deposit transaction completion / incoming payment received
+    if (eventType === "payment.received" || eventType === "incoming_payment_received" || eventType === "transaction.created") {
+      const txData = event.data || event;
+      if (txData) {
+        // Banking Circle uses account number, IBAN or booking credentials
+        const accountNumber = txData.accountNumber || txData.creditorAccountNumber || txData.iban;
+        const amount = parseFloat(txData.amount || "0");
+        const currency = (txData.currency || "USD").toUpperCase();
+        const reference = txData.bookingId || txData.transactionId || txData.paymentReference || txData.reference || `bc_ref_${Date.now()}`;
+        const description = txData.description || txData.narrative || `Incoming Banking Circle payment from ${txData.debtorName || "Sender"}`;
+
+        if (accountNumber && amount > 0) {
+          // Look up virtual account to find user_id
+          const { data: virtAcc } = await supabaseAdmin
+            .from("virtual_accounts")
+            .select("user_id")
+            .or(`account_number.eq.${accountNumber},iban.eq.${accountNumber}`)
+            .maybeSingle();
+
+          let userId = virtAcc?.user_id;
+
+          // Fallback to customer ID lookup in profiles/business_profiles
+          if (!userId && txData.customerId) {
+            const { data: profile } = await supabaseAdmin
+              .from("profiles")
+              .select("id")
+              .eq("unit_customer_id", txData.customerId)
+              .maybeSingle();
+            userId = profile?.id;
+
+            if (!userId) {
+              const { data: bizProfile } = await supabaseAdmin
+                .from("business_profiles")
+                .select("merchant_id")
+                .eq("currencycloud_account_id", txData.customerId)
+                .maybeSingle();
+              userId = bizProfile?.merchant_id;
+            }
+          }
+
+          if (userId) {
+            // Deduplicate transaction processing
+            const { data: existingTx } = await supabaseAdmin
+              .from("transactions")
+              .select("id")
+              .eq("reference", reference)
+              .maybeSingle();
+
+            if (!existingTx) {
+              const { data: wallet } = await supabaseAdmin
+                .from("fiat_wallets")
+                .select("id, balance")
+                .eq("user_id", userId)
+                .eq("currency", currency)
+                .maybeSingle();
+
+              if (wallet) {
+                const nextBalance = Number(wallet.balance) + amount;
+                
+                // Update fiat wallet balance
+                await supabaseAdmin
+                  .from("fiat_wallets")
+                  .update({ balance: nextBalance, available_balance: nextBalance })
+                  .eq("id", wallet.id);
+
+                // Log a deposit transaction
+                await supabaseAdmin.from("transactions").insert({
+                  user_id: userId,
+                  type: "deposit",
+                  amount: amount,
+                  currency: currency,
+                  status: "completed",
+                  description: description,
+                  reference: reference,
+                });
+
+                logger.info(`Banking Circle Webhook: Credited ${amount} ${currency} to user ${userId}`);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return res.status(200).json({ received: true });
+  } catch (err: any) {
+    logger.error(`Banking Circle webhook processing failed: ${err.message}`);
+    return res.status(500).json({ error: err.message });
+  }
+}
+
