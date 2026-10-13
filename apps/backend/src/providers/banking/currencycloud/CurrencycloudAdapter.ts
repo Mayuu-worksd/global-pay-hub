@@ -61,13 +61,24 @@ export class CurrencycloudAdapter implements IBankingProvider {
       account_id: customerId,
       currency: currency.toUpperCase(),
     });
+    const ccCurrency = currency.toUpperCase();
+    let bankName = "Community Federal Savings Bank";
+    let bankAddress = "New York, NY";
+    if (ccCurrency === "EUR") {
+      bankName = "Barclays Bank Ireland PLC";
+      bankAddress = "Dublin, Ireland";
+    } else if (ccCurrency === "GBP") {
+      bankName = "Barclays Bank PLC";
+      bankAddress = "London, UK";
+    }
+
     return {
       accountNumber: response.data.account_number,
       routingNumber: response.data.routing_code,
       iban: response.data.iban,
       swift_bic: response.data.bic,
-      bankName: "Currencycloud Partner Bank",
-      bankAddress: "London, UK",
+      bankName,
+      bankAddress,
     };
   }
 

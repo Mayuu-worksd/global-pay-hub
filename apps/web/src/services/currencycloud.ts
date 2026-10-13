@@ -134,15 +134,28 @@ export const currencycloudService = {
       }),
     });
 
-    const isEur = currency.toUpperCase() === "EUR";
+    const ccCurrency = currency.toUpperCase();
+    const isEur = ccCurrency === "EUR";
+    const isGbp = ccCurrency === "GBP";
+    const isUsd = ccCurrency === "USD" || (!isEur && !isGbp);
+
+    let defaultBankName = "Community Federal Savings Bank";
+    let defaultBankAddress = "New York, NY";
+    if (isEur) {
+      defaultBankName = "Barclays Bank Ireland PLC";
+      defaultBankAddress = "Dublin, Ireland";
+    } else if (isGbp) {
+      defaultBankName = "Barclays Bank PLC";
+      defaultBankAddress = "London, UK";
+    }
 
     return {
       accountNumber: res.account_number || String(Math.floor(1e11 + Math.random() * 8e11)),
-      routingNumber: isEur ? null : res.routing_code || "084009519",
+      routingNumber: isEur ? null : res.routing_code || (isUsd ? "026073150" : "084009519"),
       iban: res.iban || (isEur ? `DE89${Math.floor(1e17 + Math.random() * 8e17)}` : null),
       swift_bic: res.bic || (isEur ? "NEXUDEB2XXX" : "NEXUUS33XXX"),
-      bankName: res.bank_name || (isEur ? "Nexus Pay Europe SA" : "Nexus Pay Trust NA"),
-      bankAddress: res.bank_address || (isEur ? "12 Rue Neuve, 1000 Brussels, BE" : "8 Bridge St, New York, NY"),
+      bankName: res.bank_name || defaultBankName,
+      bankAddress: res.bank_address || defaultBankAddress,
     };
   },
 

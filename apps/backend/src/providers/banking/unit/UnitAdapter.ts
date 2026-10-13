@@ -97,8 +97,8 @@ export class UnitAdapter implements IBankingProvider {
     return {
       accountNumber: response.data.data.attributes.accountNumber,
       routingNumber: response.data.data.attributes.routingNumber,
-      bankName: "Unit Deposit Bank",
-      bankAddress: "8 Bridge St, New York, NY",
+      bankName: "Thread Bank",
+      bankAddress: "Rogersville, TN",
     };
   }
 

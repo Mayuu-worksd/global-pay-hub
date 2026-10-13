@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import crypto from "crypto";
 import { supabaseAdmin } from "../config/database";
 import { logger } from "../utils/logger";
 import { UnitAdapter } from "../providers/banking/unit/UnitAdapter";
@@ -11,6 +12,24 @@ import { GridAdapter } from "../providers/stablecoin/grid/GridAdapter";
 
 export async function handleUnitWebhook(req: Request, res: Response) {
   try {
+    const signature = req.headers["x-unit-signature"] as string;
+    const secret = process.env.UNIT_WEBHOOK_SECRET;
+
+    if (secret) {
+      if (!signature) {
+        logger.warn("Unit webhook rejected: Missing X-Unit-Signature header");
+        return res.status(401).json({ error: "Missing X-Unit-Signature header" });
+      }
+      const rawBody = (req as any).rawBody || Buffer.from(JSON.stringify(req.body));
+      const computed = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
+      if (computed !== signature) {
+        logger.warn("Unit webhook rejected: Invalid signature");
+        return res.status(401).json({ error: "Invalid Unit webhook signature" });
+      }
+    } else {
+      logger.info("Unit webhook: Skipping signature check because UNIT_WEBHOOK_SECRET is not set.");
+    }
+
     const event = req.body;
     logger.info(`Received Unit Webhook Event: ${event.type || "unknown"}`);
 
@@ -89,6 +108,23 @@ export async function handleUnitWebhook(req: Request, res: Response) {
 
 export async function handleCurrencycloudWebhook(req: Request, res: Response) {
   try {
+    const authHeader = req.headers.authorization;
+    const secret = process.env.CURRENCYCLOUD_WEBHOOK_SECRET;
+
+    if (secret) {
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        logger.warn("Currencycloud webhook rejected: Missing or invalid Authorization header");
+        return res.status(401).json({ error: "Missing or invalid Authorization header" });
+      }
+      const token = authHeader.split(" ")[1];
+      if (token !== secret) {
+        logger.warn("Currencycloud webhook rejected: Invalid token");
+        return res.status(401).json({ error: "Invalid Currencycloud webhook token" });
+      }
+    } else {
+      logger.info("Currencycloud webhook: Skipping verification because CURRENCYCLOUD_WEBHOOK_SECRET is not set.");
+    }
+
     const event = req.body;
     logger.info(`Received Currencycloud Webhook Event: ${event.event || "unknown"}`);
 
@@ -166,6 +202,24 @@ export async function handleCurrencycloudWebhook(req: Request, res: Response) {
 
 export async function handleCryptoWebhook(req: Request, res: Response) {
   try {
+    const signature = req.headers["x-tatum-signature"] as string;
+    const secret = process.env.TATUM_WEBHOOK_SECRET;
+
+    if (secret) {
+      if (!signature) {
+        logger.warn("Tatum crypto webhook rejected: Missing x-tatum-signature header");
+        return res.status(401).json({ error: "Missing x-tatum-signature header" });
+      }
+      const rawBody = (req as any).rawBody || Buffer.from(JSON.stringify(req.body));
+      const computed = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
+      if (computed !== signature) {
+        logger.warn("Tatum crypto webhook rejected: Invalid signature");
+        return res.status(401).json({ error: "Invalid Tatum webhook signature" });
+      }
+    } else {
+      logger.info("Tatum crypto webhook: Skipping verification because TATUM_WEBHOOK_SECRET is not set.");
+    }
+
     const event = req.body;
     logger.info(`Received Crypto Webhook Event: ${event.event || "unknown"}`);
 
@@ -225,22 +279,24 @@ export async function handleCryptoWebhook(req: Request, res: Response) {
     return res.status(500).json({ error: err.message });
   }
 }
-import crypto from "crypto";
-
 export async function handleSumsubWebhook(req: Request, res: Response) {
   try {
-    const signature = req.headers["x-payload-digest"];
-    const secret = process.env.SUMSUB_SECRET_KEY || "";
+    const signature = req.headers["x-payload-digest"] as string;
+    const secret = process.env.SUMSUB_SECRET_KEY;
     
-    if (secret && signature) {
-      const calculated = crypto
-        .createHmac("sha256", secret)
-        .update(JSON.stringify(req.body))
-        .digest("hex");
-        
-      if (calculated !== signature) {
-        return res.status(401).json({ error: "Invalid webhook signature" });
+    if (secret) {
+      if (!signature) {
+        logger.warn("Sumsub webhook rejected: Missing x-payload-digest header");
+        return res.status(401).json({ error: "Missing x-payload-digest header" });
       }
+      const rawBody = (req as any).rawBody || Buffer.from(JSON.stringify(req.body));
+      const computed = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
+      if (computed !== signature) {
+        logger.warn("Sumsub webhook rejected: Invalid signature");
+        return res.status(401).json({ error: "Invalid Sumsub webhook signature" });
+      }
+    } else {
+      logger.info("Sumsub webhook: Skipping signature check because SUMSUB_SECRET_KEY is not set.");
     }
 
     const event = req.body;
@@ -341,6 +397,24 @@ export async function handleSumsubWebhook(req: Request, res: Response) {
 
 export async function handleBridgeWebhook(req: Request, res: Response) {
   try {
+    const signature = req.headers["x-bridge-signature"] as string;
+    const secret = process.env.BRIDGE_WEBHOOK_SECRET;
+
+    if (secret) {
+      if (!signature) {
+        logger.warn("Bridge webhook rejected: Missing x-bridge-signature header");
+        return res.status(401).json({ error: "Missing x-bridge-signature header" });
+      }
+      const rawBody = (req as any).rawBody || Buffer.from(JSON.stringify(req.body));
+      const computed = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
+      if (computed !== signature) {
+        logger.warn("Bridge webhook rejected: Invalid signature");
+        return res.status(401).json({ error: "Invalid Bridge webhook signature" });
+      }
+    } else {
+      logger.info("Bridge webhook: Skipping verification because BRIDGE_WEBHOOK_SECRET is not set.");
+    }
+
     const event = req.body;
     logger.info(`Received Bridge Webhook Event: ${event?.type || "unknown"}`);
 
@@ -364,6 +438,24 @@ export async function handleBridgeWebhook(req: Request, res: Response) {
 
 export async function handleGridWebhook(req: Request, res: Response) {
   try {
+    const signature = req.headers["x-grid-signature"] as string;
+    const secret = process.env.GRID_WEBHOOK_SECRET;
+
+    if (secret) {
+      if (!signature) {
+        logger.warn("Grid webhook rejected: Missing x-grid-signature header");
+        return res.status(401).json({ error: "Missing x-grid-signature header" });
+      }
+      const rawBody = (req as any).rawBody || Buffer.from(JSON.stringify(req.body));
+      const computed = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
+      if (computed !== signature) {
+        logger.warn("Grid webhook rejected: Invalid signature");
+        return res.status(401).json({ error: "Invalid Grid webhook signature" });
+      }
+    } else {
+      logger.info("Grid webhook: Skipping verification because GRID_WEBHOOK_SECRET is not set.");
+    }
+
     const event = req.body;
     logger.info(`Received Grid Webhook Event: ${event?.type || "unknown"}`);
 
@@ -387,6 +479,23 @@ export async function handleGridWebhook(req: Request, res: Response) {
 
 export async function handleBankingCircleWebhook(req: Request, res: Response) {
   try {
+    const authHeader = req.headers.authorization;
+    const secret = process.env.BANKING_CIRCLE_WEBHOOK_SECRET;
+
+    if (secret) {
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        logger.warn("Banking Circle webhook rejected: Missing or invalid Authorization header");
+        return res.status(401).json({ error: "Missing or invalid Authorization header" });
+      }
+      const token = authHeader.split(" ")[1];
+      if (token !== secret) {
+        logger.warn("Banking Circle webhook rejected: Invalid token");
+        return res.status(401).json({ error: "Invalid Banking Circle webhook token" });
+      }
+    } else {
+      logger.info("Banking Circle webhook: Skipping verification because BANKING_CIRCLE_WEBHOOK_SECRET is not set.");
+    }
+
     const event = req.body;
     logger.info(`Received Banking Circle Webhook Event: ${event?.type || "unknown"}`);
 

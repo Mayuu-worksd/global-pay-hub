@@ -166,8 +166,8 @@ export const unitService = {
     return {
       accountNumber: res.data.attributes.accountNumber,
       routingNumber: res.data.attributes.routingNumber,
-      bankName: "Unit Deposit Bank",
-      bankAddress: "8 Bridge St, New York, NY",
+      bankName: "Thread Bank",
+      bankAddress: "Rogersville, TN",
     };
   },
 

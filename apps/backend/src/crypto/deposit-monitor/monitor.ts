@@ -11,6 +11,10 @@ function getTatum(): TatumAdapter {
 }
 
 export async function startDepositMonitor() {
+  if (process.env.DISABLE_BLOCKCHAIN_POLLING === "true") {
+    logger.info("Blockchain Deposit Monitor (polling) is disabled because Webhooks are active.");
+    return;
+  }
   logger.info("Initializing Blockchain Deposit Monitor...");
 
   // Wait 5s after startup before first poll to ensure env is fully loaded
